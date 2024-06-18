@@ -1,0 +1,74 @@
+import json
+import requests
+import argparse
+import urllib3
+import os
+
+# Suppress only the single InsecureRequestWarning from urllib3 needed to remove warnings
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+def load_json(file_path):
+    with open(file_path, 'r', encoding='utf-8') as file:
+        return json.load(file)
+
+def fetch_posts(subreddit, limit=100):
+    url = f'https://arctic-shift.photon-reddit.com/api/posts/search?subreddit={subreddit}&limit={limit}'
+    try:
+        response = requests.get(url, verify=False)
+        response.raise_for_status()
+        return response.json().get('data', [])
+    except requests.exceptions.RequestException as e:
+        print(f"Failed to fetch posts for subreddit {subreddit}. Error: {e}")
+        return []
+
+def expand_users_with_candidates(diagnosed_users):
+    expanded_users = []
+    total_candidates = 0  # To keep track of the total number of candidate usernames
+
+    for user in diagnosed_users:
+        username = user['username']
+        non_mh_subreddits = user['non_mental_health_subreddits']
+        candidate_usernames = set()
+
+        for subreddit in non_mh_subreddits:
+            posts = fetch_posts(subreddit)
+            authors = {post['author'] for post in posts if 'author' in post}
+            candidate_usernames.update(authors)
+
+        expanded_user_data = {
+            'username': username,
+            'post_count': user['post_count'],
+            'non_mental_health_subreddits': non_mh_subreddits,
+            'candidate_usernames': list(candidate_usernames)
+        }
+
+        expanded_users.append(expanded_user_data)
+        total_candidates += len(candidate_usernames)
+        print(f"Processed user {username} with {len(candidate_usernames)} candidate usernames")
+
+    average_candidates_per_user = total_candidates / len(diagnosed_users) if diagnosed_users else 0
+    print(f"Average number of candidate controls per diagnosed user: {average_candidates_per_user:.2f}")
+
+    return expanded_users
+
+def main():
+    parser = argparse.ArgumentParser(description='Expand diagnosed users with candidate control usernames.')
+    parser.add_argument('input_file', type=str, help='Path to the input JSON file containing diagnosed users')
+    parser.add_argument('output_file', type=str, help='Path to save the expanded JSON file')
+
+    args = parser.parse_args()
+
+    diagnosed_users = load_json(args.input_file)
+
+    expanded_users = expand_users_with_candidates(diagnosed_users)
+
+    output_dir = os.path.dirname(args.output_file)
+    os.makedirs(output_dir, exist_ok=True)
+
+    with open(args.output_file, 'w', encoding='utf-8') as file:
+        json.dump(expanded_users, file, indent=4)
+
+    print(f"Expanded user data saved to {args.output_file}")
+
+if __name__ == '__main__':
+    main()
