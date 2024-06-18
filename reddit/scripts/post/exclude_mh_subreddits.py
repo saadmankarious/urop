@@ -36,8 +36,7 @@ def filter_non_mental_health_submissions(input_file, output_file, subreddits_fil
         json.dump(non_mental_health_users, file, indent=4)
 
 
-    print(f"Saved {len(non_mental_health_users)
-                   } users with non-mental health posts to {output_file}")
+    print(f"Saved {len(non_mental_health_users)} users with non-mental health posts to {output_file}")
 
 
 def main():
