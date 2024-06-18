@@ -19,8 +19,7 @@ def load_patterns(file_path):
 
 
 def fetch_user_submissions(username):
-    url = f'https://arctic-shift.photon-reddit.com/api/posts/search?author={
-        username}&limit=auto'
+    url = f'https://arctic-shift.photon-reddit.com/api/posts/search?author={username}&limit=auto'
     try:
         response = requests.get(url, verify=False)
         response.raise_for_status()
@@ -50,7 +49,7 @@ def contains_mental_health_patterns(text, patterns):
     return any(re.search(pattern, text) for pattern in patterns)
 
 
-def filter_and_simplify_posts(posts, mental_health_patterns):
+def filter_and_simplify_posts(posts, mental_health_patterns, mental_health_subreddits):
     # Define relevant properties to keep
     relevant_properties = ['id', 'title', 'selftext',
                            'author', 'created_utc', 'subreddit', 'score']
@@ -58,9 +57,14 @@ def filter_and_simplify_posts(posts, mental_health_patterns):
     simplified_posts = []
     for post in posts:
         selftext = post.get('selftext', '')
-        if is_valid_selftext(selftext) and not contains_mental_health_patterns(selftext, mental_health_patterns):
-            simplified_post = {prop: post[prop]
-                               for prop in relevant_properties if prop in post}
+
+        if post.get("subreddit", "") in mental_health_subreddits:
+            return []
+        if  contains_mental_health_patterns(selftext, mental_health_patterns):
+            return []
+        
+        if is_valid_selftext(selftext) :
+            simplified_post = {prop: post[prop] for prop in relevant_properties if prop in post}
             simplified_posts.append(simplified_post)
 
     return simplified_posts
@@ -85,18 +89,24 @@ def filter_control_users(diagnosed_users, mental_health_subreddits, mental_healt
             if candidate in used_controls:
                 continue
             submissions = fetch_user_submissions(candidate)
-            cleaned_posts = filter_and_simplify_posts(
-                submissions, mental_health_patterns)
+           
+            cleaned_posts = filter_and_simplify_posts(submissions, mental_health_patterns, mental_health_subreddits)
+
+            if len(cleaned_posts) == 0:
+                print(f"Candidate {candidate} does not meet execlusion criteria.")
+                continue
+
+            if len(cleaned_posts) < 50:
+                print(f"Skipping candidate {candidate} with few posts {len(submissions)}")
+                continue
 
             if min_posts < len(cleaned_posts) < max_posts:
-                if all(post.get('subreddit', '').lower() not in mental_health_subreddits and not contains_mental_health_patterns(post.get('selftext', ''), mental_health_patterns) for post in submissions):
-                    print(f'a submission {submissions[0].get('subreddit', '')}')
-                    selected_controls.append({
-                        'username': candidate,
-                        'post_count':  len(cleaned_posts),
-                        'posts': cleaned_posts
-                    })
-                    used_controls.add(candidate)
+                selected_controls.append({
+                    'username': candidate,
+                    'post_count':  len(cleaned_posts),
+                    'posts': cleaned_posts
+                })
+                used_controls.add(candidate)
 
         if len(selected_controls) >= min_controls:
             matched_diagnosed_count += 1
@@ -107,12 +117,10 @@ def filter_control_users(diagnosed_users, mental_health_subreddits, mental_healt
             'controls': selected_controls[:min_controls]
         })
 
-        print(f"Matched {len(selected_controls)
-                         } controls for diagnosed user {diagnosed_username}")
+        print(f"Matched {len(selected_controls)} controls for diagnosed user {diagnosed_username}")
 
     total_diagnosed_count = len(diagnosed_users)
-    print(f"Total diagnosed users matched: {
-          matched_diagnosed_count} out of {total_diagnosed_count}")
+    print(f"Total diagnosed users matched: {matched_diagnosed_count} out of {total_diagnosed_count}")
 
     return matched_controls
 
