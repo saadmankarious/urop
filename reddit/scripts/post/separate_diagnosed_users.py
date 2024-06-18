@@ -1,6 +1,7 @@
 import json
 import re
 import argparse
+import time
 
 # Function to load posts from JSON file
 def load_json(file_path):
@@ -82,10 +83,19 @@ def main():
     posts_data = load_json(args.input_file)
     print(f"Total posts loaded: {len(posts_data)}")
 
+    # Start timing the diagnosis process
+    start_time = time.time()
+
     # Find self-diagnosed users
     diagnosed_users, unique_authors = find_self_diagnosed_users(posts_data, positive_patterns, negative_patterns, bipolar_synonyms)
+
+    # End timing the diagnosis process
+    end_time = time.time()
+    elapsed_time = end_time - start_time
+
     print(f"Total diagnosed users found: {len(diagnosed_users)}")
     print(f"Total unique authors diagnosed: {len(unique_authors)}")
+    print(f"Time taken for diagnosis: {elapsed_time:.2f} seconds")
 
     # Save unique authors to a JSON file
     with open(args.diagnosed_authors_file, 'w') as f:

@@ -3,6 +3,7 @@ import requests
 import argparse
 import urllib3
 import re
+import time
 
 # Suppress only the single InsecureRequestWarning from urllib3 needed to remove warnings
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -57,13 +58,14 @@ def filter_and_simplify_posts(posts, mental_health_patterns, mental_health_subre
     simplified_posts = []
     for post in posts:
         selftext = post.get('selftext', '')
+        subreddit = post.get('subreddit', '').lower()
 
-        if post.get("subreddit", "") in mental_health_subreddits:
+        if subreddit in mental_health_subreddits:
             return []
-        if  contains_mental_health_patterns(selftext, mental_health_patterns):
+        if contains_mental_health_patterns(selftext, mental_health_patterns):
             return []
         
-        if is_valid_selftext(selftext) :
+        if is_valid_selftext(selftext):
             simplified_post = {prop: post[prop] for prop in relevant_properties if prop in post}
             simplified_posts.append(simplified_post)
 
@@ -89,11 +91,10 @@ def filter_control_users(diagnosed_users, mental_health_subreddits, mental_healt
             if candidate in used_controls:
                 continue
             submissions = fetch_user_submissions(candidate)
-           
             cleaned_posts = filter_and_simplify_posts(submissions, mental_health_patterns, mental_health_subreddits)
 
             if len(cleaned_posts) == 0:
-                print(f"Candidate {candidate} does not meet execlusion criteria.")
+                print(f"Candidate {candidate} does not meet exclusion criteria.")
                 continue
 
             if len(cleaned_posts) < 50:
@@ -137,6 +138,8 @@ def main():
 
     args = parser.parse_args()
 
+    start_time = time.time()
+
     diagnosed_users = load_json(args.input_file)
     mental_health_subreddits = load_patterns('../resources/mh_subreddits.txt')
     mental_health_patterns = load_patterns('../resources/mh_patterns.txt')
@@ -146,7 +149,11 @@ def main():
     with open(args.output_file, 'w', encoding='utf-8') as file:
         json.dump(matched_controls, file, indent=4)
 
+    end_time = time.time()
+    elapsed_time = end_time - start_time
+
     print(f"Matched controls data saved to {args.output_file}")
+    print(f"Time taken for matching: {elapsed_time:.2f} seconds")
 
 
 if __name__ == '__main__':
