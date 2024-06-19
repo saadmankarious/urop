@@ -1,13 +1,8 @@
 #!/bin/bash
 
-# A) No posts made in MH subreddits
-# B) No mention of any MH realated term
-# runs execlusion against A) and B) conditions and saves output in condition/final
-# Example run: 
-#     bash run_diagnosed_execlusion.sh adhd_output 20
-#     runs execlusion with 20 minimum posts per user
+# Takes conditiou_output/ folder of the generate_diagnosed.sh script
+# and runs control generation and matching to each diagnosed user
 
-# Check if the user provided the required arguments
 if [ "$#" -lt 1 ]; then
     echo "Usage: $0 <INPUT_FOLDER> <threshold>"
     exit 1
@@ -28,7 +23,7 @@ MATCH_CONTROLS="control/match_controls.py"
 # Intermediate file
 TEMP_OUTPUT="${INPUT_FOLDER}/control/candidate-controls.temp.json"
 
-# Execute the first Python script
+# first find candidate controls from non mh subreddits
 echo ""
 echo "Finding control candidates..."
 python3 "$FIND_CANDIDATES" "${INPUT_FOLDER}/diagnosed/non_mh_subreddits_summary.json" "$TEMP_OUTPUT" 
