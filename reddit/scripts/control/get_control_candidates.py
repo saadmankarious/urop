@@ -3,6 +3,8 @@ import requests
 import argparse
 import urllib3
 import os
+from concurrent.futures import ThreadPoolExecutor, as_completed
+import time
 
 # Suppress only the single InsecureRequestWarning from urllib3 needed to remove warnings
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -21,6 +23,19 @@ def fetch_posts(subreddit, limit=100):
         print(f"Failed to fetch posts for subreddit {subreddit}. Error: {e}")
         return []
 
+def fetch_posts_for_subreddits(subreddits, limit=20):
+    with ThreadPoolExecutor(max_workers=10) as executor:
+        futures = {executor.submit(fetch_posts, subreddit, limit): subreddit for subreddit in subreddits}
+        results = {}
+        for future in as_completed(futures):
+            subreddit = futures[future]
+            try:
+                results[subreddit] = future.result()
+            except Exception as e:
+                print(f"Error fetching posts for subreddit {subreddit}: {e}")
+                results[subreddit] = []
+        return results
+
 def expand_users_with_candidates(diagnosed_users):
     expanded_users = []
     total_candidates = 0  # To keep track of the total number of candidate usernames
@@ -30,8 +45,9 @@ def expand_users_with_candidates(diagnosed_users):
         non_mh_subreddits = user['non_mental_health_subreddits']
         candidate_usernames = set()
 
-        for subreddit in non_mh_subreddits:
-            posts = fetch_posts(subreddit)
+        subreddit_posts = fetch_posts_for_subreddits(non_mh_subreddits, 100)
+
+        for subreddit, posts in subreddit_posts.items():
             authors = {post['author'] for post in posts if 'author' in post}
             candidate_usernames.update(authors)
 
@@ -58,6 +74,8 @@ def main():
 
     args = parser.parse_args()
 
+    start_time = time.time()  # Start timing
+
     diagnosed_users = load_json(args.input_file)
 
     expanded_users = expand_users_with_candidates(diagnosed_users)
@@ -68,7 +86,11 @@ def main():
     with open(args.output_file, 'w', encoding='utf-8') as file:
         json.dump(expanded_users, file, indent=4)
 
+    end_time = time.time()  # End timing
+    elapsed_time = (end_time - start_time) / 60  # Calculate elapsed time in minutes
+
     print(f"Expanded user data saved to {args.output_file}")
+    print(f"Time taken for execution: {elapsed_time:.2f} minutes")
 
 if __name__ == '__main__':
     main()
