@@ -67,7 +67,7 @@ def fetch_and_filter(candidate, mental_health_patterns, mental_health_subreddits
     cleaned_posts = filter_and_simplify_posts(submissions, mental_health_patterns, mental_health_subreddits)
     return candidate, cleaned_posts
 
-def filter_control_users(diagnosed_users, mental_health_subreddits, mental_health_patterns, min_controls=9, batch_size=100, output_prefix='matched_controls'):
+def filter_control_users(diagnosed_users, mental_health_subreddits, mental_health_patterns, output_directory, min_controls=9, batch_size=100, output_prefix='matched_controls'):
     matched_controls = []
     matched_diagnosed_count = 0
     used_controls = set()
@@ -77,7 +77,7 @@ def filter_control_users(diagnosed_users, mental_health_subreddits, mental_healt
     batch_index = 0
 
     def save_batch(batch_index, matched_controls):
-        output_file = f"{output_prefix}_batch_{batch_index}.json"
+        output_file = f"{output_directory}/{output_prefix}_batch_{batch_index}.json"
         with open(output_file, 'w', encoding='utf-8') as file:
             json.dump(matched_controls, file, indent=4)
         print(f"Batch {batch_index} saved with {len(matched_controls)} matched controls")
@@ -150,6 +150,7 @@ def filter_control_users(diagnosed_users, mental_health_subreddits, mental_healt
 def main():
     parser = argparse.ArgumentParser(description='Match diagnosed users with control users.')
     parser.add_argument('input_file', type=str, help='Path to the input JSON file containing expanded diagnosed users')
+    parser.add_argument('output_directory', type=str, help='Path to the input JSON file containing expanded diagnosed users')
     parser.add_argument('output_prefix', type=str, help='Prefix for the output JSON files')
     parser.add_argument('--min_controls', type=int, default=9, help='Minimum number of control users to match for each diagnosed user')
     parser.add_argument('--batch_size', type=int, default=100, help='Number of diagnosed users per output file')
@@ -161,7 +162,7 @@ def main():
     diagnosed_users = load_json(args.input_file)
     mental_health_subreddits = load_patterns('../resources/mh_subreddits.txt')
     mental_health_patterns = load_patterns('../resources/mh_patterns.txt')
-    filter_control_users(diagnosed_users, mental_health_subreddits, mental_health_patterns, args.min_controls, args.batch_size, args.output_prefix)
+    filter_control_users(diagnosed_users, mental_health_subreddits, mental_health_patterns, args.output_directory, args.min_controls, args.batch_size, args.output_prefix)
 
     end_time = time.time()
     elapsed_time = (end_time - start_time)/60
