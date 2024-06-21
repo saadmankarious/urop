@@ -4,7 +4,6 @@ import argparse
 import urllib3
 import re
 import time
-from concurrent.futures import ThreadPoolExecutor, as_completed
 
 # Suppress only the single InsecureRequestWarning from urllib3 needed to remove warnings
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -68,79 +67,92 @@ def fetch_and_filter(candidate, mental_health_patterns, mental_health_subreddits
     cleaned_posts = filter_and_simplify_posts(submissions, mental_health_patterns, mental_health_subreddits)
     return candidate, cleaned_posts
 
-def filter_control_users(diagnosed_users, mental_health_subreddits, mental_health_patterns, min_controls=9):
+def filter_control_users(diagnosed_users, mental_health_subreddits, mental_health_patterns, min_controls=9, batch_size=100, output_prefix='matched_controls'):
     matched_controls = []
     matched_diagnosed_count = 0
     used_controls = set()
     considered_candidates = 0
     not_meeting_post_count = 0
     not_meeting_exclusion_criteria = 0
+    batch_index = 0
 
-    with ThreadPoolExecutor(max_workers=10) as executor:
-        for diagnosed_user in diagnosed_users:
-            diagnosed_username = diagnosed_user['username']
-            diagnosed_post_count = diagnosed_user['post_count']
-            candidate_usernames = diagnosed_user['candidate_usernames']
-            min_posts = max(1, diagnosed_post_count // 2)
-            max_posts = diagnosed_post_count * 2
+    def save_batch(batch_index, matched_controls):
+        output_file = f"{output_prefix}_batch_{batch_index}.json"
+        with open(output_file, 'w', encoding='utf-8') as file:
+            json.dump(matched_controls, file, indent=4)
+        print(f"Batch {batch_index} saved with {len(matched_controls)} matched controls")
 
-            futures = {executor.submit(fetch_and_filter, candidate, mental_health_patterns, mental_health_subreddits): candidate for candidate in candidate_usernames}
+    for diagnosed_index, diagnosed_user in enumerate(diagnosed_users, start=1):
+        diagnosed_username = diagnosed_user['username']
+        diagnosed_post_count = diagnosed_user['post_count']
+        candidate_usernames = diagnosed_user['candidate_usernames']
+        min_posts = max(1, diagnosed_post_count // 2)
+        max_posts = diagnosed_post_count * 2
 
-            selected_controls = []
-            for future in as_completed(futures):
-                candidate = futures[future]
-                considered_candidates += 1
+        selected_controls = []
+        for candidate in candidate_usernames:
+            considered_candidates += 1
 
-                try:
-                    candidate, cleaned_posts = future.result()
-                    if candidate in used_controls:
-                        continue
+            try:
+                candidate, cleaned_posts = fetch_and_filter(candidate, mental_health_patterns, mental_health_subreddits)
+                if candidate in used_controls:
+                    continue
 
-                    if len(cleaned_posts) == 0:
-                        not_meeting_exclusion_criteria += 1
-                        continue
+                if len(cleaned_posts) == 0:
+                    not_meeting_exclusion_criteria += 1
+                    continue
 
-                    if len(cleaned_posts) < 50:
-                        not_meeting_post_count += 1
-                        continue
+                if len(cleaned_posts) < 50:
+                    not_meeting_post_count += 1
+                    continue
 
-                    if min_posts < len(cleaned_posts) < max_posts:
-                        selected_controls.append({
-                            'username': candidate,
-                            'post_count': len(cleaned_posts),
-                            'posts': cleaned_posts
-                        })
-                        used_controls.add(candidate)
+                if min_posts < len(cleaned_posts) < max_posts:
+                    selected_controls.append({
+                        'username': candidate,
+                        'post_count': len(cleaned_posts),
+                        'posts': cleaned_posts
+                    })
+                    used_controls.add(candidate)
 
-                    if len(selected_controls) >= min_controls:
-                        break
+                if len(selected_controls) >= min_controls:
+                    break
 
-                except Exception as e:
-                    print(f"Error processing candidate {candidate}: {e}")
+            except Exception as e:
+                print(f"Error processing candidate {candidate}: {e}")
 
-            if len(selected_controls) >= min_controls:
-                matched_diagnosed_count += 1
+        if len(selected_controls) >= min_controls:
+            matched_diagnosed_count += 1
 
-            matched_controls.append({
-                'diagnosed_user': diagnosed_username,
-                'diagnosed_post_count': diagnosed_post_count,
-                'controls': selected_controls[:min_controls]
-            })
-            print(f"Matched {len(selected_controls)} controls for diagnosed user {diagnosed_username}")
+        matched_controls.append({
+            'diagnosed_user': diagnosed_username,
+            'diagnosed_post_count': diagnosed_post_count,
+            'controls': selected_controls[:min_controls]
+        })
+        print(f"Matched {diagnosed_index} out of {len(diagnosed_users)} diagnosed users")
 
-        total_diagnosed_count = len(diagnosed_users)
-        print(f"Total diagnosed users matched: {matched_diagnosed_count} out of {total_diagnosed_count}")
-        print(f"Total candidates considered: {considered_candidates}")
-        print(f"Candidates not meeting post count: {not_meeting_post_count}")
-        print(f"Candidates not meeting exclusion criteria: {not_meeting_exclusion_criteria}")
+        if len(matched_controls) >= batch_size:
+            batch_index += 1
+            save_batch(batch_index, matched_controls)
+            matched_controls = []
+            print(f"Batch {batch_index} completed and saved. Processed {diagnosed_index} out of {len(diagnosed_users)} diagnosed users")
 
-    return matched_controls
+    if matched_controls:
+        batch_index += 1
+        save_batch(batch_index, matched_controls)
+        print(f"Batch {batch_index} completed and saved. Processed all diagnosed users")
+
+    total_diagnosed_count = len(diagnosed_users)
+    print(f"Total diagnosed users matched: {matched_diagnosed_count} out of {total_diagnosed_count}")
+    print(f"Total candidates considered: {considered_candidates}")
+    print(f"Candidates not meeting post count: {not_meeting_post_count}")
+    print(f"Candidates not meeting exclusion criteria: {not_meeting_exclusion_criteria}")
 
 def main():
     parser = argparse.ArgumentParser(description='Match diagnosed users with control users.')
     parser.add_argument('input_file', type=str, help='Path to the input JSON file containing expanded diagnosed users')
-    parser.add_argument('output_file', type=str, help='Path to save the matched controls JSON file')
+    parser.add_argument('output_prefix', type=str, help='Prefix for the output JSON files')
     parser.add_argument('--min_controls', type=int, default=9, help='Minimum number of control users to match for each diagnosed user')
+    parser.add_argument('--batch_size', type=int, default=100, help='Number of diagnosed users per output file')
 
     args = parser.parse_args()
 
@@ -149,15 +161,11 @@ def main():
     diagnosed_users = load_json(args.input_file)
     mental_health_subreddits = load_patterns('../resources/mh_subreddits.txt')
     mental_health_patterns = load_patterns('../resources/mh_patterns.txt')
-    matched_controls = filter_control_users(diagnosed_users, mental_health_subreddits, mental_health_patterns, args.min_controls)
-
-    with open(args.output_file, 'w', encoding='utf-8') as file:
-        json.dump(matched_controls, file, indent=4)
+    filter_control_users(diagnosed_users, mental_health_subreddits, mental_health_patterns, args.min_controls, args.batch_size, args.output_prefix)
 
     end_time = time.time()
     elapsed_time = (end_time - start_time)/60
 
-    print(f"Matched controls data saved to {args.output_file}")
     print(f"Time taken for matching: {elapsed_time:.2f} m")
 
 if __name__ == '__main__':
