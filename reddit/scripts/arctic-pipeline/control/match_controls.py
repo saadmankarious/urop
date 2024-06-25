@@ -5,6 +5,11 @@ import urllib3
 import re
 import time
 
+def globalSettings(settings_file='../../../../config/global.json'):
+    with open(settings_file, 'r', encoding='utf-8') as file:
+        settings = json.load(file)
+    return settings
+
 # Suppress only the single InsecureRequestWarning from urllib3 needed to remove warnings
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
@@ -83,11 +88,10 @@ def fetch_and_filter(candidate, mental_health_patterns, mental_health_subreddits
     cleaned_posts = filter_and_simplify_posts(submissions, mental_health_patterns, mental_health_subreddits)
     return candidate, cleaned_posts
 
-def filter_control_users(diagnosed_users, mental_health_subreddits, mental_health_patterns, output_directory, min_controls=9, batch_size=100, output_prefix='matched_controls'):
+def filter_control_users(diagnosed_users, mental_health_subreddits, mental_health_patterns, output_directory, min_controls=9, output_prefix='matched_controls'):
     matched_controls = []
     matched_diagnosed_count = 0
     used_controls = set()
-    considered_candidates = 0
     not_meeting_post_count = 0
     not_meeting_exclusion_criteria = 0
     batch_index = 0
@@ -107,7 +111,6 @@ def filter_control_users(diagnosed_users, mental_health_subreddits, mental_healt
 
         selected_controls = []
         for candidate in candidate_usernames:
-            considered_candidates += 1
 
             try:
                 candidate, cleaned_posts = fetch_and_filter(candidate, mental_health_patterns, mental_health_subreddits)
@@ -146,20 +149,21 @@ def filter_control_users(diagnosed_users, mental_health_subreddits, mental_healt
         })
         print(f"Matched {diagnosed_index} out of {len(diagnosed_users)} diagnosed users")
 
-        if len(matched_controls) >= batch_size:
+        if len(matched_controls) >= globalSettings()["control_batch_size"]:
             batch_index += 1
             save_batch(batch_index, matched_controls)
             matched_controls = []
-            print(f"Batch {batch_index} completed and saved. Processed {diagnosed_index} out of {len(diagnosed_users)} diagnosed users")
+            print("")
+            print(f"Batch {batch_index} completed and saved. Processed {diagnosed_index} out of {len(diagnosed_users)} diagnosed users.")
 
     if matched_controls:
         batch_index += 1
         save_batch(batch_index, matched_controls)
-        print(f"Batch {batch_index} completed and saved. Processed all diagnosed users")
+        print("")
+        print(f"Batch {batch_index} completed and saved. Processed all diagnosed users.")
 
     total_diagnosed_count = len(diagnosed_users)
     print(f"Total diagnosed users matched: {matched_diagnosed_count} out of {total_diagnosed_count}")
-    print(f"Total candidates considered: {considered_candidates}")
     print(f"Candidates not meeting post count: {not_meeting_post_count}")
     print(f"Candidates not meeting exclusion criteria: {not_meeting_exclusion_criteria}")
 
@@ -169,7 +173,6 @@ def main():
     parser.add_argument('output_directory', type=str, help='Directory to save the output JSON files')
     parser.add_argument('--output_prefix', type=str, default='matched_control', help='Prefix for the output JSON files')
     parser.add_argument('--min_controls', type=int, default=9, help='Minimum number of control users to match for each diagnosed user')
-    parser.add_argument('--batch_size', type=int, default=100, help='Number of diagnosed users per output file')
 
     args = parser.parse_args()
 
@@ -178,7 +181,7 @@ def main():
     diagnosed_users = load_json(args.input_file)
     mental_health_subreddits = load_patterns('../../../resources/mh_subreddits.txt')
     mental_health_patterns = load_patterns('../../../resources/mh_patterns.txt')
-    filter_control_users(diagnosed_users, mental_health_subreddits, mental_health_patterns, args.output_directory, args.min_controls, args.batch_size, args.output_prefix)
+    filter_control_users(diagnosed_users, mental_health_subreddits, mental_health_patterns, args.output_directory, globalSettings()["controls_per_diagnosed"], args.output_prefix)
 
     end_time = time.time()
     elapsed_time = (end_time - start_time)/60

@@ -90,7 +90,7 @@ def main():
     data, file_count = load_json_files_from_folder(args.input_folder)
     total_posts, invalid_posts, duplicate_posts = format_to_csv(data, args.output_file)
 
-    print(f"Summary:")
+    print(f"------------summary-----------")
     print(f"Number of files read: {file_count}")
     print(f"Total number of posts processed: {total_posts}")
     print(f"Number of invalid posts ignored: {invalid_posts}")

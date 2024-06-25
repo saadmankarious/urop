@@ -86,11 +86,5 @@ def main():
     with open(args.output_file, 'w', encoding='utf-8') as file:
         json.dump(expanded_users, file, indent=4)
 
-    end_time = time.time()  # End timing
-    elapsed_time = (end_time - start_time) / 60  # Calculate elapsed time in minutes
-
-    print(f"Expanded user data saved to {args.output_file}")
-    print(f"Time taken for execution: {elapsed_time:.2f} minutes")
-
 if __name__ == '__main__':
     main()

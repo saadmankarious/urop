@@ -13,8 +13,7 @@ INPUT_FOLDER=$1
 # Output file path provided by the user
 CONDITION_FOLDER="${INPUT_FOLDER}/control"
 
-# Threshold provided by the user
-THRESHOLD="${2:-9}"
+
 
 # Hardcoded paths to the Python scripts
 FIND_CANDIDATES="get_control_candidates.py"
@@ -28,15 +27,13 @@ TEMP_OUTPUT="${INPUT_FOLDER}/control/candidate-controls.temp.json"
 echo ""
 echo "Finding control candidates..."
 python3 "$FIND_CANDIDATES" "${INPUT_FOLDER}/diagnosed/non_mh_subreddits_summary.json" "$TEMP_OUTPUT" 
-echo "Done finding candidate controls..."
 echo ""
 
 # Check if the first script executed successfully
 if [ $? -eq 0 ]; then
     # Execute the second Python script
     echo "Matching found controls..."
-    python3 "$MATCH_CONTROLS" "$TEMP_OUTPUT" "$CONDITION_FOLDER" --min_controls "$THRESHOLD"
-    echo "Done matching controls with ${THRESHOLD} per diagnosed user"
+    python3 "$MATCH_CONTROLS" "$TEMP_OUTPUT" "$CONDITION_FOLDER"
     echo ""
 
     # Check if the second script executed successfully
