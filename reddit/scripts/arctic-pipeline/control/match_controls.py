@@ -33,7 +33,9 @@ def is_valid_selftext(selftext):
         r'\[deleted\]',          # Contains "[deleted]"
         r'\[removed\]',          # Contains "[removed]"
         r'^\s*$',                # Empty or whitespace-only
-        r'\[View Poll\]\(https://www.reddit.com/poll/.*\)'  # Poll link pattern
+        r'\[View Poll\]\(https://www.reddit.com/poll/.*\)',  # Poll link pattern
+        r'https?://\S+',         # Contains a URL
+        r'[^a-zA-Z0-9\s\.\'\!\?\,\;\-]'  # Non-English characters
     ]
     for pattern in invalid_patterns:
         if re.search(pattern, selftext, re.IGNORECASE):
@@ -150,8 +152,8 @@ def filter_control_users(diagnosed_users, mental_health_subreddits, mental_healt
 def main():
     parser = argparse.ArgumentParser(description='Match diagnosed users with control users.')
     parser.add_argument('input_file', type=str, help='Path to the input JSON file containing expanded diagnosed users')
-    parser.add_argument('output_directory', type=str, help='Path to the input JSON file containing expanded diagnosed users')
-    parser.add_argument('--output_prefix', type=str, help='Prefix for the output JSON files')
+    parser.add_argument('output_directory', type=str, help='Directory to save the output JSON files')
+    parser.add_argument('--output_prefix', type=str, default='matched_control', help='Prefix for the output JSON files')
     parser.add_argument('--min_controls', type=int, default=9, help='Minimum number of control users to match for each diagnosed user')
     parser.add_argument('--batch_size', type=int, default=100, help='Number of diagnosed users per output file')
 
