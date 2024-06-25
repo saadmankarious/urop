@@ -28,7 +28,7 @@ FETCH_SUBMISSIONS_SCRIPT="fetch_all_user_submissions.py"
 FINAL_CLEANING_SCRIPT="final_cleaning.py"
 
 # Create the condition folder
-CONDITION_FOLDER="${CONDITION_NAME}_output"
+CONDITION_FOLDER="../../../data/${CONDITION_NAME}_output"
 mkdir -p "$CONDITION_FOLDER"
 mkdir -p "${CONDITION_FOLDER}/diagnosed"
 
@@ -74,7 +74,8 @@ if [ $? -eq 0 ]; then
             echo ""
             echo "Applying execlusion patterns..."
             echo ""
-            bash "run_diagnosed_execlusion.sh" "${CONDITION_NAME}_output"
+            echo $CONDITION_FOLDER
+            bash "run_diagnosed_execlusion.sh" $CONDITION_FOLDER
             echo ""
         else
             echo "Error: The fetch submissions script did not execute successfully."

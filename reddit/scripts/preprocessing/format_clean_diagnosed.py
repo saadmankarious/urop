@@ -64,7 +64,8 @@ def convert_json_to_csv(input_file, output_file):
                 csv_writer.writerow([tid, cleaned_text])
 
     print(f"Data has been successfully converted to {output_file}")
-    print(f"Ration of duplicate posts: {duplicate_count/len(unique_texts)}")
+    print(f"# of duplicated posts: {duplicate_count}")
+    print(f"Ratio of duplicate posts: {duplicate_count/len(unique_texts)}")
 
 def main():
     parser = argparse.ArgumentParser(description='Convert JSON file to CSV with specified format and perform text cleaning.')

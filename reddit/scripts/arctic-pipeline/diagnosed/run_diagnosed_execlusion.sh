@@ -16,18 +16,20 @@ fi
 # Input file path provided by the user
 INPUT_FOLDER=$1
 # Output file path provided by the user
-FINAL_OUTPUT="data-diagnosed.final.json"
+FINAL_OUTPUT="${INPUT_FOLDER}/diagnosed/data-diagnosed.final.json"
+FINAL_SUMMARY="${INPUT_FOLDER}/diagnosed/non_mh_subreddits_summary.json"
 
 # Threshold provided by the user
 THRESHOLD="${2:-30}"
 
 # Hardcoded paths to the Python scripts
-EXECLUDE_MH_SUBREDDITS="post/exclude_mh_subreddits.py"
-EXECLUDE_MH_MENTIONS="post/exclude_mh_mentions.py"
+EXECLUDE_MH_SUBREDDITS="exclude_mh_subreddits.py"
+EXECLUDE_MH_MENTIONS="exclude_mh_mentions.py"
+FORMATTER="../../preprocessing/format_clean_diagnosed.py"
+
 
 # Intermediate file
 TEMP_OUTPUT="${INPUT_FOLDER}/diagnosed/exclusion.temp.json"
-FINAL_SUMMARY="non_mh_subreddits_summary.json"
 
 # Execute the first Python script
 echo ""
@@ -43,12 +45,11 @@ if [ $? -eq 0 ]; then
     echo "B) Excluding submissions with MH terms..."
     python3 "$EXECLUDE_MH_MENTIONS" "$TEMP_OUTPUT" "$FINAL_OUTPUT" "$FINAL_SUMMARY" --minimum_mh_posts "$THRESHOLD"
     rm $TEMP_OUTPUT
-    mv $FINAL_OUTPUT $FINAL_SUMMARY  "${INPUT_FOLDER%%/*}/diagnosed"
     echo "Done excluding submissions with  mental health terms with threshold ${THRESHOLD}"
     echo ""
     echo "Generating CYMO format..."
     echo ""
-    python3 "cymo_formatter.py" "${INPUT_FOLDER}/diagnosed/data-diagnosed.final.json" "${INPUT_FOLDER}/diagnosed/data.cymo.csv"
+    python3 $FORMATTER "${INPUT_FOLDER:0}/diagnosed/data-diagnosed.final.json" "${INPUT_FOLDER}/diagnosed/data.cymo.csv"
     echo "Done generating cymo format"
 else
     echo "Error: The first Python script did not execute successfully."

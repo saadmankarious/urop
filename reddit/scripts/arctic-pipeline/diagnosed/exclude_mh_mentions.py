@@ -36,7 +36,7 @@ def main():
     args = parser.parse_args()
 
     # Hardcoded path to the mental health patterns text file
-    mental_health_patterns_file = '../resources/mh_patterns.txt'
+    mental_health_patterns_file = '../../../resources/mh_patterns.txt'
     mental_health_patterns = load_patterns(mental_health_patterns_file)
 
     user_submissions = []

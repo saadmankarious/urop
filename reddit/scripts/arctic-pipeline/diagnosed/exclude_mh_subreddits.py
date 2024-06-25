@@ -50,7 +50,7 @@ def main():
     args = parser.parse_args()
 
     # Hardcoded path to the subreddits text file
-    subreddits_file = '../resources/mh_subreddits.txt'
+    subreddits_file = '../../../resources/mh_subreddits.txt'
 
     filter_non_mental_health_submissions(
         args.input_file, args.output_file, subreddits_file)
