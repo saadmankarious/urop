@@ -81,24 +81,21 @@ def main():
 
     # Load posts data
     posts_data = load_json(args.input_file)
-    print(f"Total posts loaded: {len(posts_data)}")
 
     # Start timing the diagnosis process
     start_time = time.time()
 
     # Find self-diagnosed users
     diagnosed_users, unique_authors = find_self_diagnosed_users(posts_data, positive_patterns, negative_patterns, bipolar_synonyms)
-
     # End timing the diagnosis process
     end_time = time.time()
     elapsed_time = end_time - start_time
 
-    print(f"Time taken for diagnosis: {elapsed_time:.2f} seconds")
+    print(f"{len(unique_authors)} users diagnosed in {elapsed_time:.2f} seconds. Saved to {args.diagnosed_authors_file}")
 
     # Save unique authors to a JSON file
     with open(args.diagnosed_authors_file, 'w') as f:
         json.dump(unique_authors, f, indent=4)
-    print(f"Unique authors saved to {args.diagnosed_authors_file}")
 
 if __name__ == '__main__':
     main()

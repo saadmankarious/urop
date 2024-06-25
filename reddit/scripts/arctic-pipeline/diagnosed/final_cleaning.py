@@ -2,6 +2,12 @@ import json
 import re
 import argparse
 
+
+def globalSettings(settings_file='../../../../config/global.json'):
+    with open(settings_file, 'r', encoding='utf-8') as file:
+        settings = json.load(file)
+    return settings
+
 # Function to check if selftext is valid
 def is_valid_selftext(selftext):
     invalid_patterns = [
@@ -24,7 +30,7 @@ def is_valid_selftext(selftext):
     sentences = re.split(r'[.!?]', selftext)
     for sentence in sentences:
         words = sentence.strip().split()
-        if len(words) > 2:
+        if len(words) > globalSettings()["min_diagnosed_post_word_count"]:
             return True
 
     return False
@@ -37,7 +43,6 @@ def filter_and_simplify_posts(input_file, output_file):
     simplified_user_submissions = []
     total_simplified_posts = 0
     total_length = 0
-    user_count = 0
 
     # Load the JSON file
     with open(input_file, 'r', encoding='utf-8') as file:
@@ -48,14 +53,13 @@ def filter_and_simplify_posts(input_file, output_file):
         simplified_posts = []
         for post in user_data['posts']:
             selftext = post.get('selftext', '')
-            if is_valid_selftext(selftext) and len(selftext) >= 20:
+            if is_valid_selftext(selftext):
                 simplified_post = {prop: post[prop] for prop in relevant_properties if prop in post}
                 simplified_posts.append(simplified_post)
                 total_length += len(selftext)
                 total_simplified_posts += 1
 
         if simplified_posts:
-            user_count += 1
             simplified_user_data = {
                 'username': user_data['username'],
                 'posts': simplified_posts
@@ -73,9 +77,7 @@ def filter_and_simplify_posts(input_file, output_file):
 
     print("")
     print("-------------Summary-----------------")
-    print(f"Total number of simplified posts: {total_simplified_posts} saved to {output_file}")
-    print(f"Total number of users diagnosed: {user_count}")
-    print(f"Average post length: {average_length:.2f} characters")
+    print(f"Average diagnosed post length: {average_length:.2f} characters")
 
 def main():
     parser = argparse.ArgumentParser(

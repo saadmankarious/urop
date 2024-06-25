@@ -1,0 +1,9 @@
+{
+    "minimum_posts_per_diagnosed_user": 50,
+    "non_mh_posts_per_diagnosed_user": 35,
+    "min_diagnosed_post_word_count": 15,
+    "min_control_post_word_count": 20,
+    "file_paths": {
+        "input_folder": "path/to/input/folder"
+    }
+}

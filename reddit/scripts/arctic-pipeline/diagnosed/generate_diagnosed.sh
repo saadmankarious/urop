@@ -8,7 +8,7 @@
 
 # Check if the user provided the required arguments
 if [ "$#" -lt 2 ]; then
-    echo "Usage: $0 <path_to_input_file>  <condition_name> <minimum posts for user> [<reddit_activity_threshold> <all_user_submissions_output_file>]"
+    echo "Usage: $0 <path_to_input_file>  <condition_name> <minimum posts for user> [<all_user_submissions_output_file>]"
     exit 1
 fi
 
@@ -19,7 +19,6 @@ INPUT_FILE="$1"
 CONDITION_NAME="$2"
 
 # Optional parameters
-REDDIT_ACTIVITY_THRESHOLD="${3:-50}"
 
 # Hardcoded paths to the Python scripts
 CLEANING_SCRIPT="initial_cleaning.py"
@@ -39,11 +38,9 @@ FINAL_CLEANED_SUBMISSIONS_FILE="${CONDITION_FOLDER}/diagnosed/diagnosed-users-al
 ALL_USER_SUBMISSIONS_OUTPUT_FILE="${CONDITION_FOLDER}/${5:-all_user_submissions.json}"
 
 # Execute the first Python script with the input and output file paths
-echo "Generating diagnosed data with ${REDDIT_ACTIVITY_THRESHOLD} min posts per user..."
+echo "Generating diagnosed data..."
 echo ""
-echo "Cleaning data (submission text filteration)....."
 python3 "$CLEANING_SCRIPT" "$INPUT_FILE" "$CLEANED_OUTPUT_FILE"
-echo "Done cleaning data....."
 echo ""
 
 # Check if the first script executed successfully
@@ -59,8 +56,7 @@ if [ $? -eq 0 ]; then
         # Execute the third Python script to fetch all user submissions
         echo "Fetching all user submissions for diagnosed users....."
         echo ""
-        python3 "$FETCH_SUBMISSIONS_SCRIPT" "$DIAGNOSED_AUTHORS_FILE" --output_file "$ALL_USER_SUBMISSIONS_OUTPUT_FILE" --reddit_activity_threshold "$REDDIT_ACTIVITY_THRESHOLD"
-        echo "Done fetching user submissions....."
+        python3 "$FETCH_SUBMISSIONS_SCRIPT" "$DIAGNOSED_AUTHORS_FILE" --output_file "$ALL_USER_SUBMISSIONS_OUTPUT_FILE" 
         echo ""
 
         # Check if the third script executed successfully

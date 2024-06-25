@@ -7,6 +7,11 @@ import urllib3
 # Disable the InsecureRequestWarning
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
+def globalSettings(settings_file='../../../../config/global.json'):
+    with open(settings_file, 'r', encoding='utf-8') as file:
+        settings = json.load(file)
+    return settings
+
 # Function to load unique users from a JSON file
 def load_unique_users(file_path):
     with open(file_path, 'r', encoding='utf-8') as file:
@@ -29,13 +34,13 @@ def main():
     parser = argparse.ArgumentParser(description='Fetch Reddit submissions for unique users using Arctic Shift API.')
     parser.add_argument('users_file', type=str, help='Path to the JSON file containing unique users')
     parser.add_argument('--output_file', type=str, default='all_user_submissions.json', help='File to save the output JSON data')
-    parser.add_argument('--reddit_activity_threshold', type=int, default=0, help='Minimum number of posts required to save a user')
     
     args = parser.parse_args()
 
     unique_users = load_unique_users(args.users_file)
     output_file = args.output_file
-    threshold = args.reddit_activity_threshold
+    settings = globalSettings()
+    threshold = settings["minimum_posts_per_diagnosed_user"]
 
     all_user_submissions = []
     total_posts = 0
@@ -66,7 +71,8 @@ def main():
     else:
         average_posts = 0
 
-    print(f"Saved {qualified_users_count} users to {output_file}")
+    print("")
+    print(f"{qualified_users_count}/{len(unique_users)} diagnosed users meeting minimum activity of {threshold} posts")
     print(f"Average number of posts per qualified user: {average_posts:.2f}")
 
 if __name__ == '__main__':

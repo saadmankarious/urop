@@ -9,7 +9,7 @@
 
 # Check if the user provided the required arguments
 if [ "$#" -lt 1 ]; then
-    echo "Usage: $0 <INPUT_FOLDER> <threshold>"
+    echo "Usage: $0 <INPUT_FOLDER>"
     exit 1
 fi
 
@@ -20,7 +20,6 @@ FINAL_OUTPUT="${INPUT_FOLDER}/diagnosed/data-diagnosed.final.json"
 FINAL_SUMMARY="${INPUT_FOLDER}/diagnosed/non_mh_subreddits_summary.json"
 
 # Threshold provided by the user
-THRESHOLD="${2:-30}"
 
 # Hardcoded paths to the Python scripts
 EXECLUDE_MH_SUBREDDITS="exclude_mh_subreddits.py"
@@ -43,9 +42,9 @@ echo ""
 if [ $? -eq 0 ]; then
     # Execute the second Python script
     echo "B) Excluding submissions with MH terms..."
-    python3 "$EXECLUDE_MH_MENTIONS" "$TEMP_OUTPUT" "$FINAL_OUTPUT" "$FINAL_SUMMARY" --minimum_mh_posts "$THRESHOLD"
+    python3 "$EXECLUDE_MH_MENTIONS" "$TEMP_OUTPUT" "$FINAL_OUTPUT" "$FINAL_SUMMARY"
     rm $TEMP_OUTPUT
-    echo "Done excluding submissions with  mental health terms with threshold ${THRESHOLD}"
+    echo "Done excluding submissions with  mental health terms."
     echo ""
     echo "Generating CYMO format..."
     echo ""

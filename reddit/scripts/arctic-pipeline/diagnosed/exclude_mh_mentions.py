@@ -2,6 +2,11 @@ import json
 import re
 import argparse
 
+def globalSettings(settings_file='../../../../config/global.json'):
+    with open(settings_file, 'r', encoding='utf-8') as file:
+        settings = json.load(file)
+    return settings
+
 # Function to load patterns from a text file
 def load_patterns(file_path):
     with open(file_path, 'r') as file:
@@ -30,8 +35,7 @@ def main():
                         help='Path to save the filtered JSON file')
     parser.add_argument('summary_file', type=str,
                         help='Path to save the summary JSON file')
-    parser.add_argument('--minimum_mh_posts', type=int, default=30,
-                        help='Minimum number of posts required to save a user')
+
 
     args = parser.parse_args()
 
@@ -48,30 +52,28 @@ def main():
     total_posts = 0
     qualified_users_count = 0
     non_qualified_users_count = 0
+    non_mh_threshold = globalSettings()["non_mh_posts_per_diagnosed_user"]
 
-    for user in user_submissions:
-        posts = user['posts']
-        if len(posts) >= args.minimum_mh_posts:
-            filtered_posts = remove_mental_health_posts(
-                posts, mental_health_patterns)
-            if filtered_posts:
-                all_user_submissions.append({
-                    'username': user['username'],
-                    'posts': filtered_posts
-                })
-                total_posts += len(filtered_posts)
-                qualified_users_count += 1
-                user_post_counts.append({
-                    'username': user['username'],
-                    'post_count': len(filtered_posts),
-                    'non_mental_health_subreddits': list({post['subreddit'] for post in filtered_posts if post.get('subreddit')})
-                })
-            else:
-                non_qualified_users_count += 1
+    for submission in user_submissions:
+        posts = submission['posts']
+        filtered_posts = remove_mental_health_posts(posts, mental_health_patterns)
+        if filtered_posts and len(filtered_posts) >= non_mh_threshold:
+            all_user_submissions.append({
+                'username': submission['username'],
+                'posts': filtered_posts
+            })
+            total_posts += len(filtered_posts)
+            qualified_users_count += 1
+            user_post_counts.append({
+                'username': submission['username'],
+                'post_count': len(filtered_posts),
+                'non_mental_health_subreddits': list({post['subreddit'] for post in filtered_posts if post.get('subreddit')})
+            })
         else:
             non_qualified_users_count += 1
 
-        print(f"Processed user {user['username']} with {len(posts)} posts")
+
+        print(f"Processed user {submission['username']} with              {len(filtered_posts)} posts")
 
     # Save all user submissions to a single JSON file
     with open(args.output_file, 'w', encoding='utf-8') as file:
@@ -92,7 +94,7 @@ def main():
     print(f"Users saved: {qualified_users_count} at {args.output_file}")
     print(f"Summary for control: {args.summary_file}")
     print(f"Average # of posts per qualified user: {average_posts:.2f}")
-    print(f"Execluded users: {non_qualified_users_count}")
+    print(f"Users with less than {non_mh_threshold} posts: {non_qualified_users_count}")
     print("------------------------------")
     print('')
 

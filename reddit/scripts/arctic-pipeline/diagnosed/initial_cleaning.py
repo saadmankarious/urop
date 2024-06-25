@@ -48,15 +48,8 @@ def filter_and_simplify_posts(input_file, output_file):
     with open(output_file, 'w', encoding='utf-8') as file:
         json.dump(simplified_user_submissions, file, indent=4)
 
-    if total_simplified_posts:
-        average_length = total_length / total_simplified_posts
-    else:
-        average_length = 0
-
-    print(f"Simplified data saved to {output_file}")
-    print(f"Total number of simplified posts: {total_simplified_posts}")
-    print(f"Average selftext length: {average_length:.2f} characters")
-    print(f"Number of duplicate posts found and ignored: {duplicate_count}")
+    print(f"Posts read: {total_simplified_posts}")
+    print(f"Duplicated posts: {duplicate_count}")
 
 def preprocess_text(text):
     # Lowercasing Text
