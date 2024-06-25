@@ -11,14 +11,14 @@ fi
 # Input file path provided by the user
 INPUT_FOLDER=$1
 # Output file path provided by the user
-FINAL_OUTPUT="${INPUT_FOLDER}/control/data-control.final.json"
+FINAL_OUTPUT="${INPUT_FOLDER}/control"
 
 # Threshold provided by the user
 THRESHOLD="${2:-9}"
 
 # Hardcoded paths to the Python scripts
-FIND_CANDIDATES="control/get_control_candidates.py"
-MATCH_CONTROLS="control/match_controls.py"
+FIND_CANDIDATES="get_control_candidates.py"
+MATCH_CONTROLS="match_controls.py"
 
 # Intermediate file
 TEMP_OUTPUT="${INPUT_FOLDER}/control/candidate-controls.temp.json"

@@ -70,9 +70,9 @@ def main():
     args = parser.parse_args()
 
     # Hardcoded paths to the pattern text files
-    positive_patterns_file = '../resources/positive_diagnosis_patterns.txt'
-    negative_patterns_file = '../resources/negative_diagnosis_patterns.txt'
-    bipolar_synonyms_file = '../resources/bipolar_synonyms.txt'
+    positive_patterns_file = '../../../resources/positive_diagnosis_patterns.txt'
+    negative_patterns_file = '../../../resources/negative_diagnosis_patterns.txt'
+    bipolar_synonyms_file = '../../../resources/bipolar_synonyms.txt'
 
     # Load the patterns and synonyms
     positive_patterns = load_patterns(positive_patterns_file)

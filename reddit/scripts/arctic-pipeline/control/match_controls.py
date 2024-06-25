@@ -151,7 +151,7 @@ def main():
     parser = argparse.ArgumentParser(description='Match diagnosed users with control users.')
     parser.add_argument('input_file', type=str, help='Path to the input JSON file containing expanded diagnosed users')
     parser.add_argument('output_directory', type=str, help='Path to the input JSON file containing expanded diagnosed users')
-    parser.add_argument('output_prefix', type=str, help='Prefix for the output JSON files')
+    parser.add_argument('--output_prefix', type=str, help='Prefix for the output JSON files')
     parser.add_argument('--min_controls', type=int, default=9, help='Minimum number of control users to match for each diagnosed user')
     parser.add_argument('--batch_size', type=int, default=100, help='Number of diagnosed users per output file')
 
@@ -160,8 +160,8 @@ def main():
     start_time = time.time()
 
     diagnosed_users = load_json(args.input_file)
-    mental_health_subreddits = load_patterns('../resources/mh_subreddits.txt')
-    mental_health_patterns = load_patterns('../resources/mh_patterns.txt')
+    mental_health_subreddits = load_patterns('../../../resources/mh_subreddits.txt')
+    mental_health_patterns = load_patterns('../../../resources/mh_patterns.txt')
     filter_control_users(diagnosed_users, mental_health_subreddits, mental_health_patterns, args.output_directory, args.min_controls, args.batch_size, args.output_prefix)
 
     end_time = time.time()

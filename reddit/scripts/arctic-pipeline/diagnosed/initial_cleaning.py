@@ -23,8 +23,10 @@ def filter_and_simplify_posts(input_file, output_file):
     relevant_properties = ['id', 'title', 'selftext', 'author', 'created_utc', 'subreddit', 'score']
 
     simplified_user_submissions = []
+    unique_texts = set()
     total_simplified_posts = 0
     total_length = 0
+    duplicate_count = 0
 
     # Read the large JSON file line by line
     with open(input_file, 'r', encoding='utf-8') as file:
@@ -32,6 +34,11 @@ def filter_and_simplify_posts(input_file, output_file):
             post = json.loads(line.strip())
             selftext = post.get('selftext', '')
             if is_valid_selftext(selftext):
+                cleaned_text = preprocess_text(selftext)
+                if cleaned_text in unique_texts:
+                    duplicate_count += 1
+                    continue
+                unique_texts.add(cleaned_text)
                 simplified_post = {prop: post[prop] for prop in relevant_properties if prop in post}
                 simplified_user_submissions.append(simplified_post)
                 total_length += len(selftext)
@@ -49,6 +56,43 @@ def filter_and_simplify_posts(input_file, output_file):
     print(f"Simplified data saved to {output_file}")
     print(f"Total number of simplified posts: {total_simplified_posts}")
     print(f"Average selftext length: {average_length:.2f} characters")
+    print(f"Number of duplicate posts found and ignored: {duplicate_count}")
+
+def preprocess_text(text):
+    # Lowercasing Text
+    text = text.lower()
+    
+    # Removing Hyperlinks
+    text = re.sub(r'https?://\S+', '', text)
+    
+    # Removing HTML Tags
+    text = re.sub(r'<.*?>', '', text)
+    
+    # Removing User Mentions
+    text = re.sub(r'@\w+', '', text)
+    
+    # Removing HTML Entities
+    text = re.sub(r'&\w+;', ' ', text)
+    
+    # Processing Hashtags
+    text = re.sub(r'#(\w+)', r'\1', text)
+    
+    # Preserving Certain Characters and Whitespace
+    text = re.sub(r'[^a-zA-Z0-9\s\.\'\!\?\,\;\-]', ' ', text)
+    
+    # Normalizing Spaces and Punctuation
+    text = re.sub(r'(?<=[.,!?])(?=[^\s])', r' ', text)
+    text = re.sub(r'\s+', ' ', text)
+    text = re.sub(r'(\.|\!|\?|\,|\;)\1+', r'\1', text)  # Deduplicate sentence-ending symbols
+    text = re.sub(r'\.{3,}', '.', text)  # Replace consecutive ellipsis with a single full stop
+    text = text.strip()
+    text = re.sub(r'(?<=\w)([.,;])(?=\S)', r'\1 ', text)
+    
+    # Ensure post ends with a full stop if it doesn't end with a sentence-ending symbol
+    if not re.search(r'[.!?]$', text):
+        text += '.'
+    
+    return text
 
 def main():
     parser = argparse.ArgumentParser(

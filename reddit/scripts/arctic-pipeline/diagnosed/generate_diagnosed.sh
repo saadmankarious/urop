@@ -22,10 +22,10 @@ CONDITION_NAME="$2"
 REDDIT_ACTIVITY_THRESHOLD="${3:-30}"
 
 # Hardcoded paths to the Python scripts
-CLEANING_SCRIPT="post/cleaning.py"
-DIAGNOSIS_SCRIPT="post/separate_diagnosed_users.py"
-FETCH_SUBMISSIONS_SCRIPT="post/fetch_all_user_submissions.py"
-FINAL_CLEANING_SCRIPT="post/final_cleaning.py"
+CLEANING_SCRIPT="initial_cleaning.py"
+DIAGNOSIS_SCRIPT="separate_diagnosed_users.py"
+FETCH_SUBMISSIONS_SCRIPT="fetch_all_user_submissions.py"
+FINAL_CLEANING_SCRIPT="final_cleaning.py"
 
 # Create the condition folder
 CONDITION_FOLDER="${CONDITION_NAME}_output"

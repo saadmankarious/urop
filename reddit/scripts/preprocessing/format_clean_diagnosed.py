@@ -43,6 +43,9 @@ def convert_json_to_csv(input_file, output_file):
     with open(input_file, 'r', encoding='utf-8') as json_file:
         data = json.load(json_file)
 
+    unique_texts = set()
+    duplicate_count = 0
+
     with open(output_file, 'w', newline='', encoding='utf-8') as csv_file:
         csv_writer = csv.writer(csv_file)
         # Write the header
@@ -54,9 +57,14 @@ def convert_json_to_csv(input_file, output_file):
                 tid = f"{username}_{post['id']}"
                 text = post.get('selftext', '')
                 cleaned_text = preprocess_text(text)
+                if cleaned_text in unique_texts:
+                    duplicate_count += 1
+                    continue
+                unique_texts.add(cleaned_text)
                 csv_writer.writerow([tid, cleaned_text])
 
     print(f"Data has been successfully converted to {output_file}")
+    print(f"Ration of duplicate posts: {duplicate_count/len(unique_texts)}")
 
 def main():
     parser = argparse.ArgumentParser(description='Convert JSON file to CSV with specified format and perform text cleaning.')
