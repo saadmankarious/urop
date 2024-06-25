@@ -62,6 +62,7 @@ def filter_and_simplify_posts(posts, mental_health_patterns, mental_health_subre
     # Define relevant properties to keep
     relevant_properties = ['id', 'title', 'selftext', 'author', 'created_utc', 'subreddit', 'score']
     simplified_posts = []
+    seen_selftexts = set()
 
     for post in posts:
         selftext = post.get('selftext', '')
@@ -70,9 +71,10 @@ def filter_and_simplify_posts(posts, mental_health_patterns, mental_health_subre
         if subreddit in mental_health_subreddits or contains_mental_health_patterns(selftext, mental_health_patterns):
             return []
 
-        if is_valid_selftext(selftext):
+        if is_valid_selftext(selftext) and selftext not in seen_selftexts:
             simplified_post = {prop: post[prop] for prop in relevant_properties if prop in post}
             simplified_posts.append(simplified_post)
+            seen_selftexts.add(selftext)
 
     return simplified_posts
 
