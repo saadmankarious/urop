@@ -54,7 +54,7 @@ def convert_json_to_csv(input_file, output_file):
         for user_data in data:
             username = user_data['username']
             for post in user_data['posts']:
-                tid = f"{username}_{post['id']}"
+                tid = f"1_{username}_{post['id']}"
                 text = post.get('selftext', '')
                 cleaned_text = daniel_cleaning(text)
                 if cleaned_text in unique_texts:

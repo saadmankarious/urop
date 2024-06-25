@@ -93,8 +93,6 @@ def main():
     end_time = time.time()
     elapsed_time = end_time - start_time
 
-    print(f"Total diagnosed users found: {len(diagnosed_users)}")
-    print(f"Total unique authors diagnosed: {len(unique_authors)}")
     print(f"Time taken for diagnosis: {elapsed_time:.2f} seconds")
 
     # Save unique authors to a JSON file

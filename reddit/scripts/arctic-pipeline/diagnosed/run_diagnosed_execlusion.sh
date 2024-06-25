@@ -25,7 +25,7 @@ THRESHOLD="${2:-30}"
 # Hardcoded paths to the Python scripts
 EXECLUDE_MH_SUBREDDITS="exclude_mh_subreddits.py"
 EXECLUDE_MH_MENTIONS="exclude_mh_mentions.py"
-FORMATTER="../../preprocessing/format_clean_diagnosed.py"
+FORMATTER="../preprocessing/format_clean_diagnosed.py"
 
 
 # Intermediate file
@@ -49,7 +49,7 @@ if [ $? -eq 0 ]; then
     echo ""
     echo "Generating CYMO format..."
     echo ""
-    python3 $FORMATTER "${INPUT_FOLDER:0}/diagnosed/data-diagnosed.final.json" "${INPUT_FOLDER}/diagnosed/data.cymo.csv"
+    python3 $FORMATTER "${INPUT_FOLDER:0}/diagnosed/data-diagnosed.final.json" "${INPUT_FOLDER}/diagnosed/diagnosed-data.cymo.csv"
     echo "Done generating cymo format"
 else
     echo "Error: The first Python script did not execute successfully."

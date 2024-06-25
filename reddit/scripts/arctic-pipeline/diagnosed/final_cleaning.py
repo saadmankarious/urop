@@ -10,12 +10,24 @@ def is_valid_selftext(selftext):
         r'\[deleted\]',          # Contains "[deleted]"
         r'\[removed\]',          # Contains "[removed]"
         r'^\s*$',                # Empty or whitespace-only
-        r'\[View Poll\]\(https://www.reddit.com/poll/.*\)'  # Poll link pattern
+        r'\[View Poll\]\(https://www.reddit.com/poll/.*\)',  # Poll link pattern
     ]
     for pattern in invalid_patterns:
         if re.search(pattern, selftext, re.IGNORECASE):
             return False
-    return True
+
+    # Check if there is at least one sentence-ending punctuation mark
+    if not re.search(r'[.!?]', selftext):
+        return False
+
+    # Check if the sentence is too short (one or two words)
+    sentences = re.split(r'[.!?]', selftext)
+    for sentence in sentences:
+        words = sentence.strip().split()
+        if len(words) > 2:
+            return True
+
+    return False
 
 # Function to filter and simplify posts
 def filter_and_simplify_posts(input_file, output_file):

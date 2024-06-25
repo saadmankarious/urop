@@ -7,7 +7,7 @@
 #      runs diagnosis on the given jsonl file with minimum 20 posts with the condition named ADHD
 
 # Check if the user provided the required arguments
-if [ "$#" -lt 3 ]; then
+if [ "$#" -lt 2 ]; then
     echo "Usage: $0 <path_to_input_file>  <condition_name> <minimum posts for user> [<reddit_activity_threshold> <all_user_submissions_output_file>]"
     exit 1
 fi
@@ -19,7 +19,7 @@ INPUT_FILE="$1"
 CONDITION_NAME="$2"
 
 # Optional parameters
-REDDIT_ACTIVITY_THRESHOLD="${3:-30}"
+REDDIT_ACTIVITY_THRESHOLD="${3:-50}"
 
 # Hardcoded paths to the Python scripts
 CLEANING_SCRIPT="initial_cleaning.py"
@@ -39,6 +39,8 @@ FINAL_CLEANED_SUBMISSIONS_FILE="${CONDITION_FOLDER}/diagnosed/diagnosed-users-al
 ALL_USER_SUBMISSIONS_OUTPUT_FILE="${CONDITION_FOLDER}/${5:-all_user_submissions.json}"
 
 # Execute the first Python script with the input and output file paths
+echo "Generating diagnosed data with ${REDDIT_ACTIVITY_THRESHOLD} min posts per user..."
+echo ""
 echo "Cleaning data (submission text filteration)....."
 python3 "$CLEANING_SCRIPT" "$INPUT_FILE" "$CLEANED_OUTPUT_FILE"
 echo "Done cleaning data....."
@@ -74,7 +76,6 @@ if [ $? -eq 0 ]; then
             echo ""
             echo "Applying execlusion patterns..."
             echo ""
-            echo $CONDITION_FOLDER
             bash "run_diagnosed_execlusion.sh" $CONDITION_FOLDER
             echo ""
         else

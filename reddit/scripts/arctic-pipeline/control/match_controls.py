@@ -40,7 +40,19 @@ def is_valid_selftext(selftext):
     for pattern in invalid_patterns:
         if re.search(pattern, selftext, re.IGNORECASE):
             return False
-    return True
+
+    # Check if there is at least one sentence-ending punctuation mark
+    if not re.search(r'[.!?]', selftext):
+        return False
+
+    # Check if the sentence is too short (one or two words)
+    sentences = re.split(r'[.!?]', selftext)
+    for sentence in sentences:
+        words = sentence.strip().split()
+        if len(words) > 10:
+            return True
+
+    return False
 
 def contains_mental_health_patterns(text, patterns):
     text = text.lower()
