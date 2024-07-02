@@ -51,7 +51,8 @@ def filter_and_simplify(input_folder, output_file):
             for line in file:
                 post = json.loads(line.strip())
                 selftext = post.get('selftext', '')
-                if is_valid_text(selftext):
+                author = post.get('author', '')
+                if is_valid_text(selftext) and author != '[deleted]':
                     cleaned_text = preprocess_text(selftext)
                     if cleaned_text in unique_texts:
                         duplicate_count += 1
@@ -70,7 +71,8 @@ def filter_and_simplify(input_folder, output_file):
             for line in file:
                 comment = json.loads(line.strip())
                 body = comment.get('body', '')
-                if is_valid_text(body):
+                author = comment.get('author', '')
+                if is_valid_text(body) and author != '[deleted]':
                     cleaned_text = preprocess_text(body)
                     if cleaned_text in unique_texts:
                         duplicate_count += 1
