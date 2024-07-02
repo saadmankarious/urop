@@ -6,8 +6,8 @@ from sklearn.metrics import accuracy_score, classification_report
 import pandas as pd
 
 def main():
-    diagnosed_file_path = '../../reddit/scripts/bipolar-24_output/diagnosed/data-diagnosed.final.json'  # Replace with your actual file path
-    control_file_path = '../../reddit/scripts/bipolar-24_output/control/data-control.final.json'      # Replace with your actual file path
+    diagnosed_file_path = '../../reddit/data/bipolar_2019_output/diagnosed/data-diagnosed.final.json'  # Replace with your actual file path
+    control_file_path = '../../reddit/data/bipolar_2019_output/control-data.final.json'      # Replace with your actual file path
 
     sentiment_analyzer = UserSentiment.UserSentiment()
     df = sentiment_analyzer.getBasicSentimentAnalysis(diagnosed_file_path, control_file_path)
