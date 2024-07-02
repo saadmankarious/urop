@@ -59,7 +59,7 @@ def main():
                 total_posts += len(posts)
                 qualified_users_count += 1
 
-                print(f"Fetched {len(posts)} submissions for user {user}")
+                print(f"---{user} > {len(posts)}")
 
     # Save all user submissions to a single JSON file
     with open(output_file, 'w') as f:

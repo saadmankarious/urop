@@ -13,7 +13,7 @@ def load_json(file_path):
     with open(file_path, 'r', encoding='utf-8') as file:
         return json.load(file)
 
-def fetch_posts(subreddit, limit=100):
+def fetch_posts(subreddit, limit):
     url = f'https://arctic-shift.photon-reddit.com/api/posts/search?subreddit={subreddit}&limit={limit}'
     try:
         response = requests.get(url, verify=False)
@@ -23,7 +23,7 @@ def fetch_posts(subreddit, limit=100):
         print(f"Failed to fetch posts for subreddit {subreddit}. Error: {e}")
         return []
 
-def fetch_posts_for_subreddits(subreddits, limit=20):
+def fetch_posts_for_subreddits(subreddits, limit):
     with ThreadPoolExecutor(max_workers=10) as executor:
         futures = {executor.submit(fetch_posts, subreddit, limit): subreddit for subreddit in subreddits}
         results = {}
