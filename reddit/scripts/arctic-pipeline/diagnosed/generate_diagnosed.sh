@@ -65,7 +65,7 @@ if [ $? -eq 0 ]; then
             echo "Cleaning downloaded data...."
             python3 "$FINAL_CLEANING_SCRIPT" "$ALL_USER_SUBMISSIONS_OUTPUT_FILE" "$FINAL_CLEANED_SUBMISSIONS_FILE"
             rm $ALL_USER_SUBMISSIONS_OUTPUT_FILE
-            rm $CLEANED_OUTPUT_FILE
+            # rm $CLEANED_OUTPUT_FILE
             echo "Done fetching submissions..... YAI!!!!!" 
             echo "--------------------------------"
             echo ""
