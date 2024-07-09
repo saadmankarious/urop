@@ -16,7 +16,7 @@ def is_valid_text(text):
         r'[^a-zA-Z0-9\s\.\'\!\?\,\;\-]'  # Non-English characters
     ]
     for pattern in invalid_patterns:
-        if re.search(pattern, text, re.IGNORECASE):
+        if re.search(re.escape(pattern), text, re.IGNORECASE):
             return False
 
     # Check if there is at least one sentence-ending punctuation mark

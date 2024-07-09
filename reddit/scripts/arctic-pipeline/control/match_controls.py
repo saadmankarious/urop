@@ -59,7 +59,7 @@ def is_valid_selftext(selftext):
         r'[^a-zA-Z0-9\s\.\'\!\?\,\;\-]'  # Non-English characters
     ]
     for pattern in invalid_patterns:
-        if re.search(pattern, selftext, re.IGNORECASE):
+        if re.search(re.escape(pattern), selftext, re.IGNORECASE):
             return False
 
     # Check if there is at least one sentence-ending punctuation mark
@@ -77,7 +77,7 @@ def is_valid_selftext(selftext):
 
 def contains_mental_health_patterns(text, patterns):
     text = text.lower()
-    return any(re.search(pattern, text) for pattern in patterns)
+    return any(re.search(re.escape(pattern), text) for pattern in patterns)
 
 def filter_and_simplify_posts(posts, mental_health_patterns, mental_health_subreddits):
     # Define relevant properties to keep

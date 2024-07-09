@@ -19,7 +19,7 @@ def is_valid_selftext(selftext):
         r'\[View Poll\]\(https://www.reddit.com/poll/.*\)',  # Poll link pattern
     ]
     for pattern in invalid_patterns:
-        if re.search(pattern, selftext, re.IGNORECASE):
+        if re.search(re.escape(pattern), selftext, re.IGNORECASE):
             return False
 
     # Check if there is at least one sentence-ending punctuation mark

@@ -31,13 +31,13 @@ def find_self_diagnosed_users(posts, positive_patterns, negative_patterns, bipol
 
         # Check for negative diagnosis patterns
         for pattern in negative_patterns:
-            if re.search(pattern, text, re.IGNORECASE):
+            if re.search(re.escape(pattern), text, re.IGNORECASE):
                 negative_diagnosis_mentioned = True
                 break
 
         # Check for positive diagnosis patterns
         for pattern in positive_patterns:
-            match = re.search(pattern, text, re.IGNORECASE)
+            match = re.search(re.escape(pattern), text, re.IGNORECASE)
             if match:
                 positive_diagnosis_mentioned = True
                 start_pos = match.start()

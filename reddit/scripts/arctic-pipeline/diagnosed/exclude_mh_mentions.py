@@ -15,7 +15,7 @@ def load_patterns(file_path):
 # Function to check if a post contains any mental health patterns
 def contains_mental_health_patterns(text, patterns):
     text = text.lower()
-    return any(re.search(pattern, text) for pattern in patterns)
+    return any(re.search(re.escape(pattern), text) for pattern in patterns)
 
 # Function to remove posts with mental health patterns and ensure selftext is valid
 def remove_mental_health_posts(posts, mental_health_patterns):
