@@ -1,5 +1,6 @@
 import pandas as pd
 import argparse
+import os
 
 def merge_csv(file1, file2, output_file=None):
     # Read the CSV files into DataFrames
@@ -22,10 +23,11 @@ def merge_csv(file1, file2, output_file=None):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Merge two CSV files with the same headers.')
-    parser.add_argument('file1', type=str, help='Path to the first CSV file')
-    parser.add_argument('file2', type=str, help='Path to the second CSV file')
-    parser.add_argument('--output', type=str, help='Path to the output CSV file (optional)', default=None)
+    parser.add_argument('condition_dir', type=str, help='Path to the first CSV file')
 
     args = parser.parse_args()
-
-    merge_csv(args.file1, args.file2, args.output)
+    base_name = os.path.basename(args.condition_dir.strip('/'))
+    extracted_part = base_name.split('_')[0]
+    merge_csv(f'{args.condition_dir}/diagnosed/diagnosed-data.cymo.csv', 
+                f'{args.condition_dir}/control/control-data.cymo.csv',
+              f'{args.condition_dir}/{extracted_part}-raw-combined.csv')
