@@ -22,14 +22,30 @@ def load_patterns(file_path):
         return [line.strip().lower() for line in file.readlines()]
 
 def fetch_user_submissions(username):
-    url = f'https://arctic-shift.photon-reddit.com/api/posts/search?author={username}&limit=auto'
+    posts_url = f'https://arctic-shift.photon-reddit.com/api/posts/search?author={username}&limit=auto'
+    comments_url = f'https://arctic-shift.photon-reddit.com/api/comments/search?author={username}&limit=auto'
+    posts, comments = [], []
+
     try:
-        response = requests.get(url, verify=False)
-        response.raise_for_status()
-        return response.json().get('data', [])
+        # Fetch posts
+        posts_response = requests.get(posts_url, verify=False)
+        posts_response.raise_for_status()
+        posts = posts_response.json().get('data', [])
+        
+        # Fetch comments
+        comments_response = requests.get(comments_url, verify=False)
+        comments_response.raise_for_status()
+        comments = comments_response.json().get('data', [])
+        
+        # Adjust comments to use 'selftext' instead of 'body'
+        for comment in comments:
+            comment['selftext'] = comment.pop('body', '')
+
     except requests.exceptions.RequestException as e:
         print(f"Failed to fetch submissions for user {username}. Error: {e}")
         return []
+
+    return posts + comments
 
 def is_valid_selftext(selftext):
     invalid_patterns = [
@@ -111,7 +127,6 @@ def filter_control_users(diagnosed_users, mental_health_subreddits, mental_healt
 
         selected_controls = []
         for candidate in candidate_usernames:
-
             try:
                 candidate, cleaned_posts = fetch_and_filter(candidate, mental_health_patterns, mental_health_subreddits)
                 if candidate in used_controls:

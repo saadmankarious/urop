@@ -19,15 +19,30 @@ def load_unique_users(file_path):
 
 # Function to fetch user submissions from Arctic Shift API
 def fetch_user_submissions(username):
-    url = f'https://arctic-shift.photon-reddit.com/api/posts/search?author={username}&limit=auto'
+    posts_url = f'https://arctic-shift.photon-reddit.com/api/posts/search?author={username}&limit=auto'
+    comments_url = f'https://arctic-shift.photon-reddit.com/api/comments/search?author={username}&limit=auto'
     
+    posts, comments = [], []
+
     try:
-        response = requests.get(url, verify=False)  # Disable SSL verification
-        response.raise_for_status()  # Raise an exception for HTTP errors
-        return response.json().get('data', [])
+        # Fetch posts
+        posts_response = requests.get(posts_url, verify=False)  # Disable SSL verification
+        posts_response.raise_for_status()  # Raise an exception for HTTP errors
+        posts = posts_response.json().get('data', [])
+        
+        # Fetch comments
+        comments_response = requests.get(comments_url, verify=False)  # Disable SSL verification
+        comments_response.raise_for_status()  # Raise an exception for HTTP errors
+        comments = comments_response.json().get('data', [])
+        
+        # Adjust comments to use 'selftext' instead of 'body'
+        for comment in comments:
+            comment['selftext'] = comment.pop('body', '')
+
     except requests.exceptions.RequestException as e:
-        print(f"Failed to fetch submissions for user {username}. Error: {e}")
-        return []
+        print(f"Failed to fetch data for user {username}. Error: {e}")
+    
+    return posts + comments
 
 # Main function to process all unique users
 def main():
@@ -50,6 +65,7 @@ def main():
         submissions = fetch_user_submissions(user)
         
         if submissions:
+            # Filter submissions to only include those with text content
             posts = [submission for submission in submissions if submission.get('selftext') is not None]
             if len(posts) >= threshold:
                 all_user_submissions.append({
