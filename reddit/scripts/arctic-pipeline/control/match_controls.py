@@ -179,6 +179,8 @@ def filter_control_users(diagnosed_users, mental_health_subreddits, mental_healt
 
     total_diagnosed_count = len(diagnosed_users)
     print(f"Total diagnosed users matched: {matched_diagnosed_count} out of {total_diagnosed_count}")
+    thr = globalSettings()["controls_per_diagnosed"]
+    print(f"Controls per diagnosed:{thr}")
     print(f"Candidates not meeting post count: {not_meeting_post_count}")
     print(f"Candidates not meeting exclusion criteria: {not_meeting_exclusion_criteria}")
 
