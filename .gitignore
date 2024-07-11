@@ -12,6 +12,7 @@ __pycache__/
 cleaned-pre-diagnosis-data.json
 cleaned-pre-diagnosis-data.json
 candidate-controls.temp.json
+*.cymo.csv
 # Distribution / packaging
 .Python
 build/
