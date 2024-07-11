@@ -162,7 +162,7 @@ def filter_control_users(diagnosed_users, mental_health_subreddits, mental_healt
             'diagnosed_post_count': diagnosed_post_count,
             'controls': selected_controls[:min_controls]
         })
-        print(f"Matched {diagnosed_index} out of {len(diagnosed_users)} diagnosed users")
+        print(f"----> matched {diagnosed_index}/{len(diagnosed_users)} diagnosed users with {len(selected_controls)} controls")
 
         if len(matched_controls) >= globalSettings()["control_batch_size"]:
             batch_index += 1

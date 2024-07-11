@@ -88,7 +88,7 @@ def filter_and_simplify(input_folder, output_file):
     with open(output_file, 'w', encoding='utf-8') as file:
         json.dump(simplified_submissions, file, indent=4)
 
-    print(f"Posts and comments read: {total_simplified_posts}")
+    print(f"Valid posts and comments read: {total_simplified_posts}")
     print(f"Duplicated posts and comments: {duplicate_count}")
 
 def preprocess_text(text):

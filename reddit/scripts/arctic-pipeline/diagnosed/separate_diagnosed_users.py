@@ -66,18 +66,19 @@ def main():
     parser = argparse.ArgumentParser(description='Identify diagnosed users based on their posts.')
     parser.add_argument('input_file', type=str, help='Path to the input JSON file containing cleaned posts')
     parser.add_argument('diagnosed_authors_file', type=str, help='Path to save the diagnosed authors JSON file')
+    parser.add_argument('condition_name', type=str, help='Path to save the diagnosed authors JSON file')
 
     args = parser.parse_args()
 
     # Hardcoded paths to the pattern text files
     positive_patterns_file = '../../../resources/positive_diagnosis_patterns.txt'
     negative_patterns_file = '../../../resources/negative_diagnosis_patterns.txt'
-    bipolar_synonyms_file = '../../../resources/bipolar_synonyms.txt'
+    bipolar_synonyms_file = f'../../../resources/conditions/{args.condition_name}-syns.txt'
 
     # Load the patterns and synonyms
     positive_patterns = load_patterns(positive_patterns_file)
     negative_patterns = load_patterns(negative_patterns_file)
-    bipolar_synonyms = load_patterns(bipolar_synonyms_file)
+    condition_syns = load_patterns(bipolar_synonyms_file)
 
     # Load posts data
     posts_data = load_json(args.input_file)
@@ -86,7 +87,7 @@ def main():
     start_time = time.time()
 
     # Find self-diagnosed users
-    diagnosed_users, unique_authors = find_self_diagnosed_users(posts_data, positive_patterns, negative_patterns, bipolar_synonyms)
+    diagnosed_users, unique_authors = find_self_diagnosed_users(posts_data, positive_patterns, negative_patterns, condition_syns)
     # End timing the diagnosis process
     end_time = time.time()
     elapsed_time = end_time - start_time

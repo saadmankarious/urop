@@ -47,7 +47,7 @@ echo ""
 if [ $? -eq 0 ]; then
     # Execute the second Python script with the cleaned output file and threshold
     echo "Diagnosing ${CONDITION_NAME} users....."
-    python3 "$DIAGNOSIS_SCRIPT" "$CLEANED_OUTPUT_FILE" "$DIAGNOSED_AUTHORS_FILE" 
+    python3 "$DIAGNOSIS_SCRIPT" "$CLEANED_OUTPUT_FILE" "$DIAGNOSED_AUTHORS_FILE" "$CONDITION_NAME"
     echo "Done diagnosing users....."
     echo ""
 
