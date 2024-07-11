@@ -9,7 +9,9 @@ __pycache__/
 *.so
 
 # *_output/
-
+cleaned-pre-diagnosis-data.json
+cleaned-pre-diagnosis-data.json
+candidate-controls.temp.json
 # Distribution / packaging
 .Python
 build/
