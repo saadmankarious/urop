@@ -90,12 +90,22 @@ def main():
     print(f"\nProcessing dataset: {input_file_path}")
     X_scaled, X_raw, y = load_and_preprocess_dataset(input_file_path)
 
+    # Log some samples from each class
+    print("\nSample data from 'bipolar' class:")
+    print(X_raw[y == 'bipolar'].head())
+    print("\nSample data from 'control' class:")
+    print(X_raw[y == 'control'].head())
+
     # Perform the train-test split with stratification
     X_train, X_test, y_train, y_test = train_test_split(X_scaled, y, test_size=0.2, stratify=y, random_state=42)
 
     # Ensure there are more than one class in y_train and y_test
     assert len(y_train.unique()) > 1, "The training dataset must contain more than one class."
     assert len(y_test.unique()) > 1, "The test dataset must contain more than one class."
+
+    # Log the distribution of classes in the training and test sets
+    print(f"\nTraining set class distribution:\n{y_train.value_counts()}")
+    print(f"Test set class distribution:\n{y_test.value_counts()}")
 
     # Train and evaluate models
     results_df = train_and_evaluate_models(X_train, y_train, X_test, y_test, "bipolar")
