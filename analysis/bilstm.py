@@ -5,7 +5,6 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder, StandardScaler
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import LSTM, Dense, Bidirectional, Dropout
-from tensorflow.keras.preprocessing.sequence import pad_sequences
 from tensorflow.keras.callbacks import EarlyStopping
 import argparse
 
@@ -16,8 +15,9 @@ def load_and_preprocess_data(file_path):
     # Extract and process the 'tid' column
     df[['diagnosed', 'userID', 'postID']] = df['tid'].apply(lambda x: pd.Series(parse_tid(x)))
     df['MHC'] = df['diagnosed'].apply(lambda x: 'bipolar' if x == '1' else 'control')
+    print(df.head(100))
+
     df.drop(columns=['tid', 'postID', 'diagnosed'], inplace=True)
-    
     # Split into features and target
     X = df.drop(columns=['MHC', 'userID'])
     y = df['MHC']
@@ -30,7 +30,7 @@ def load_and_preprocess_data(file_path):
     scaler = StandardScaler()
     X_scaled = scaler.fit_transform(X)
     
-    return X_scaled, y
+    return X_scaled, y, df['userID']
 
 # Parse the 'tid' column to extract diagnosed, userID, and postID
 def parse_tid(tid):
@@ -75,10 +75,17 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # Load and preprocess the data
-    X, y = load_and_preprocess_data(args.input_file)
+    X, y, user_ids = load_and_preprocess_data(args.input_file)
 
     # Split the data into training and testing sets
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, stratify=y, random_state=42)
+    X_train, X_test, y_train, y_test, user_train, user_test = train_test_split(X, y, user_ids, test_size=0.2, stratify=y, random_state=42)
+
+    # Ensure there is no overlap in userID between training and testing sets
+    assert len(set(user_train).intersection(set(user_test))) == 0, f"Data leakage detected: Overlapping userIDs in train and test sets: {len(set(user_train).intersection(set(user_test))) }"
+
+    # Check class distribution in training and test sets
+    print(f"Training set class distribution:\n{pd.Series(y_train).value_counts()}")
+    print(f"Test set class distribution:\n{pd.Series(y_test).value_counts()}")
 
     # Train and evaluate the BiLSTM model
     model, history = train_and_evaluate_bilstm(X_train, y_train, X_test, y_test)
