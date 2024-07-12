@@ -8,7 +8,7 @@ __pycache__/
 # C extensions
 *.so
 
-# *_output/
+*_output/
 cleaned-pre-diagnosis-data.json
 cleaned-pre-diagnosis-data.json
 candidate-controls.temp.json

@@ -20,6 +20,8 @@ def preprocess_data(df):
     df[['diagnosed', 'userID', 'postID']] = df['tid'].apply(lambda x: pd.Series(parse_tid(x)))
     df['MHC'] = df['diagnosed'].apply(lambda x: 'bipolar' if x == '1' else 'control')
     df.drop(columns=['tid', 'postID', 'diagnosed'], inplace=True)
+    print(df.head())
+    print(df.tail())
     return df
 
 # Function to load and preprocess dataset
@@ -84,7 +86,7 @@ def main():
     parser.add_argument('input_directory', type=str, help='Path to the input directory containing the CSV file')
     args = parser.parse_args()
 
-    input_file_path = os.path.join(args.input_directory, 'ann.2024-all-submissions-raw-combined.csv')
+    input_file_path = os.path.join(args.input_directory, 'ann.bipolar-raw-combined.csv')
 
     # Load and preprocess the dataset
     print(f"\nProcessing dataset: {input_file_path}")
