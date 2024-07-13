@@ -3,10 +3,11 @@
 Centrla repository for Lovelace: a labeled-data collection tool from Reddit. 
 Currently the tool supports generating labeled data for diagnosed and control classes
 from mental health related subreddits. Nine subbreddits are currently available:
- -Bipolar
- -Deression
- -ADHD
- -+6 more
+- [Bipolar]
+- [Depression]
+- [ADHD]
+- [...]
+
 
 ## Table of Contents
 
@@ -30,3 +31,5 @@ cd lovelace
 
 # Install dependencies
 pip3 install -r requirements.txt
+
+## Usage

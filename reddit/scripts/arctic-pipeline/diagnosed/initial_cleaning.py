@@ -3,6 +3,18 @@ import re
 import argparse
 import os
 
+def globalSettings(settings_file='../../../../config/global.json'):
+    with open(settings_file, 'r', encoding='utf-8') as file:
+        settings = json.load(file)
+    return settings
+
+formatted_json = json.dumps(globalSettings(), indent=4)
+formatted_json = formatted_json.replace('{', '').replace('}', '').replace('"', '').strip()
+print("")
+print("Settings: ")
+print(formatted_json)
+print("")
+
 # Function to check if text is valid
 def is_valid_text(text):
     invalid_patterns = [

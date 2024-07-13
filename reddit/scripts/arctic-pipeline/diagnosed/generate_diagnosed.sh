@@ -30,13 +30,13 @@ FINAL_CLEANING_SCRIPT="final_cleaning.py"
 CONDITION_FOLDER="../../../data/${CONDITION_NAME}_output"
 mkdir -p "$CONDITION_FOLDER"
 mkdir -p "${CONDITION_FOLDER}/diagnosed"
-
+LOG="${CONDITION_FOLDER}/diagnosed.log.txt"
 # Intermediate files
 CLEANED_OUTPUT_FILE="${CONDITION_FOLDER}/diagnosed/cleaned-pre-diagnosis-data.json"
 DIAGNOSED_AUTHORS_FILE="${CONDITION_FOLDER}/diagnosed/diagnosed-usernames.json"
 FINAL_CLEANED_SUBMISSIONS_FILE="${CONDITION_FOLDER}/diagnosed/diagnosed-users-all-submissions.json"
 ALL_USER_SUBMISSIONS_OUTPUT_FILE="${CONDITION_FOLDER}/${5:-all_user_submissions.json}"
-
+{
 # Execute the first Python script with the input and output file paths
 echo "Generating diagnosed data..."
 echo ""
@@ -86,3 +86,4 @@ else
     echo "Error: The cleaning script did not execute successfully."
     exit 1
 fi
+} &> "$LOG"
