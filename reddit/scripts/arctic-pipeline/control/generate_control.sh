@@ -12,7 +12,7 @@ fi
 INPUT_FOLDER=$1
 # Output file path provided by the user
 CONDITION_FOLDER="${INPUT_FOLDER}/control"
-
+LOG="${INPUT_FOLDER}/control.log.txt"
 
 
 # Hardcoded paths to the Python scripts
@@ -23,6 +23,7 @@ CONTROL_FORMATTER="../preprocessing/format_clean_control.py"  # Replace with the
 # Intermediate file
 TEMP_OUTPUT="${INPUT_FOLDER}/control/candidate-controls.temp.json"
 
+{
 # first find candidate controls from non mh subreddits
 echo ""
 echo "Finding control candidates..."
@@ -51,3 +52,4 @@ else
     echo "Error: The first Python script did not execute successfully."
     exit 1
 fi
+} &> "$LOG"
