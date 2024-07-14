@@ -4,6 +4,8 @@ import argparse
 import urllib3
 import re
 import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from threading import Lock
 
 def globalSettings(settings_file='../../../../config/global.json'):
     with open(settings_file, 'r', encoding='utf-8') as file:
@@ -104,12 +106,53 @@ def fetch_and_filter(candidate, mental_health_patterns, mental_health_subreddits
     cleaned_posts = filter_and_simplify_posts(submissions, mental_health_patterns, mental_health_subreddits)
     return candidate, cleaned_posts
 
+def process_diagnosed_user(diagnosed_user, mental_health_subreddits, mental_health_patterns, min_controls, used_controls, lock):
+    diagnosed_username = diagnosed_user['username']
+    diagnosed_post_count = diagnosed_user['post_count']
+    candidate_usernames = diagnosed_user['candidate_usernames']
+    min_posts = max(1, diagnosed_post_count // 2)
+    max_posts = diagnosed_post_count * 2
+
+    selected_controls = []
+    for candidate in candidate_usernames:
+        try:
+            candidate, cleaned_posts = fetch_and_filter(candidate, mental_health_patterns, mental_health_subreddits)
+            with lock:
+                if candidate in used_controls:
+                    continue
+
+            if len(cleaned_posts) == 0:
+                continue
+
+            if len(cleaned_posts) < 50:
+                continue
+
+            if min_posts < len(cleaned_posts) < max_posts:
+                selected_controls.append({
+                    'username': candidate,
+                    'post_count': len(cleaned_posts),
+                    'posts': cleaned_posts
+                })
+                with lock:
+                    used_controls.add(candidate)
+
+            if len(selected_controls) >= min_controls:
+                break
+
+        except Exception as e:
+            print(f"Error processing candidate {candidate}: {e}")
+
+    return {
+        'diagnosed_user': diagnosed_username,
+        'diagnosed_post_count': diagnosed_post_count,
+        'controls': selected_controls[:min_controls]
+    }
+
 def filter_control_users(diagnosed_users, mental_health_subreddits, mental_health_patterns, output_directory, min_controls=9, output_prefix='matched_controls'):
     matched_controls = []
     matched_diagnosed_count = 0
     used_controls = set()
-    not_meeting_post_count = 0
-    not_meeting_exclusion_criteria = 0
+    lock = Lock()
     batch_index = 0
 
     def save_batch(batch_index, matched_controls):
@@ -118,58 +161,22 @@ def filter_control_users(diagnosed_users, mental_health_subreddits, mental_healt
             json.dump(matched_controls, file, indent=4)
         print(f"Batch {batch_index} saved with {len(matched_controls)} matched controls")
 
-    for diagnosed_index, diagnosed_user in enumerate(diagnosed_users, start=1):
-        diagnosed_username = diagnosed_user['username']
-        diagnosed_post_count = diagnosed_user['post_count']
-        candidate_usernames = diagnosed_user['candidate_usernames']
-        min_posts = max(1, diagnosed_post_count // 2)
-        max_posts = diagnosed_post_count * 2
+    with ThreadPoolExecutor(max_workers=4) as executor:
+        future_to_diagnosed = {executor.submit(process_diagnosed_user, diagnosed_user, mental_health_subreddits, mental_health_patterns, min_controls, used_controls, lock): diagnosed_user for diagnosed_user in diagnosed_users}
 
-        selected_controls = []
-        for candidate in candidate_usernames:
-            try:
-                candidate, cleaned_posts = fetch_and_filter(candidate, mental_health_patterns, mental_health_subreddits)
-                if candidate in used_controls:
-                    continue
+        for future in as_completed(future_to_diagnosed):
+            diagnosed_user_result = future.result()
+            matched_controls.append(diagnosed_user_result)
 
-                if len(cleaned_posts) == 0:
-                    not_meeting_exclusion_criteria += 1
-                    continue
+            if len(diagnosed_user_result['controls']) >= min_controls:
+                matched_diagnosed_count += 1
 
-                if len(cleaned_posts) < 50:
-                    not_meeting_post_count += 1
-                    continue
-
-                if min_posts < len(cleaned_posts) < max_posts:
-                    selected_controls.append({
-                        'username': candidate,
-                        'post_count': len(cleaned_posts),
-                        'posts': cleaned_posts
-                    })
-                    used_controls.add(candidate)
-
-                if len(selected_controls) >= min_controls:
-                    break
-
-            except Exception as e:
-                print(f"Error processing candidate {candidate}: {e}")
-
-        if len(selected_controls) >= min_controls:
-            matched_diagnosed_count += 1
-
-        matched_controls.append({
-            'diagnosed_user': diagnosed_username,
-            'diagnosed_post_count': diagnosed_post_count,
-            'controls': selected_controls[:min_controls]
-        })
-        print(f"----> matched {diagnosed_index}/{len(diagnosed_users)} diagnosed users with {len(selected_controls)} controls")
-
-        if len(matched_controls) >= globalSettings()["control_batch_size"]:
-            batch_index += 1
-            save_batch(batch_index, matched_controls)
-            matched_controls = []
-            print("")
-            print(f"Batch {batch_index} completed and saved. Processed {diagnosed_index} out of {len(diagnosed_users)} diagnosed users.")
+            if len(matched_controls) >= globalSettings()["control_batch_size"]:
+                batch_index += 1
+                save_batch(batch_index, matched_controls)
+                matched_controls = []
+                print("")
+                print(f"Batch {batch_index} completed and saved. Processed {len(matched_controls)} diagnosed users.")
 
     if matched_controls:
         batch_index += 1
@@ -181,8 +188,6 @@ def filter_control_users(diagnosed_users, mental_health_subreddits, mental_healt
     print(f"Total diagnosed users matched: {matched_diagnosed_count} out of {total_diagnosed_count}")
     thr = globalSettings()["controls_per_diagnosed"]
     print(f"Controls per diagnosed:{thr}")
-    print(f"Candidates not meeting post count: {not_meeting_post_count}")
-    print(f"Candidates not meeting exclusion criteria: {not_meeting_exclusion_criteria}")
 
 def main():
     parser = argparse.ArgumentParser(description='Match diagnosed users with control users.')
