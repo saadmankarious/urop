@@ -19,17 +19,25 @@ from mental health related subreddits. Nine subbreddits are currently available:
 - [Contact](#contact)
 
 ## Installation
-
-Instructions on how to set up and install the project on your local machine.
-
+After cloning this project, you need to create a new py environment at the root folder of the cloned project with: 
 ```bash
-# Clone the repository
-git clone https://github.com/saadmankarious/urop.git
+python3 -m venv venv
+source venv/bin/activate
 
-# Navigate to the project directory
-cd lovelace
-
-# Install dependencies
+#install needed packages:
 pip3 install -r requirements.txt
+```
 
 ## Usage
+Now you're all set to start experimenting with labeled data creation.
+Ex:
+
+```bash
+#generate new daignosed dataset
+cd reddit/scripts/arctic-pipeline/diagnosed
+bash generate_diagnosed.sh /pat/to/raw-data
+```
+
+## Features
+
+
