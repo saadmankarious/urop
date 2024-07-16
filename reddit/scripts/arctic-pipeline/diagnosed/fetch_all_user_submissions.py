@@ -39,7 +39,7 @@ def fetch_user_submissions(username):
         for comment in comments:
             comment['selftext'] = comment.pop('body', '')
 
-    except requests.exceptions.RequestException as e:
+    except Exception as e:
         print(f"Failed to fetch data for user {username}. Error: {e}")
     
     return posts + comments
