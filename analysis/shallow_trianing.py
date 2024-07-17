@@ -12,14 +12,23 @@ import argparse
 def parse_tid(tid):
     parts = tid.split('_')
     diagnosed = parts[0]
-    post_id = parts[-1]
-    user_id = '_'.join(parts[1:-1])
+    if diagnosed == '0':
+        # Format: 0_subreddit_diagnosedUsername_controlUsername_postID
+        post_id = parts[-1]
+        user_id = parts[-2]  # control username
+    else:
+        # Format: 1_username_postID
+        post_id = parts[-1]
+        user_id = '_'.join(parts[1:-1])  # diagnosed username
     return diagnosed, user_id, post_id
 
 def preprocess_data(df):
+    print(df.head())
+    print(df.tail())
     df[['diagnosed', 'userID', 'postID']] = df['tid'].apply(lambda x: pd.Series(parse_tid(x)))
     df['MHC'] = df['diagnosed'].apply(lambda x: 'bipolar' if x == '1' else 'control')
     df.drop(columns=['tid', 'postID', 'diagnosed'], inplace=True)
+    print('after getting post id')
     print(df.head())
     print(df.tail())
     return df
@@ -86,7 +95,7 @@ def main():
     parser.add_argument('input_directory', type=str, help='Path to the input directory containing the CSV file')
     args = parser.parse_args()
 
-    input_file_path = os.path.join(args.input_directory, 'ann.bipolar-raw-combined.csv')
+    input_file_path = os.path.join(args.input_directory, 'chunky_03.csv')
 
     # Load and preprocess the dataset
     print(f"\nProcessing dataset: {input_file_path}")
