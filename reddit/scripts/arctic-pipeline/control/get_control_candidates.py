@@ -6,6 +6,18 @@ import os
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import time
 
+def globalSettings(settings_file='../../../../config/global.json'):
+    with open(settings_file, 'r', encoding='utf-8') as file:
+        settings = json.load(file)
+    return settings
+
+formatted_json = json.dumps(globalSettings(), indent=4)
+formatted_json = formatted_json.replace('{', '').replace('}', '').replace('"', '').strip()
+print("")
+print("Settings: ")
+print(formatted_json)
+print("")
+
 # Suppress only the single InsecureRequestWarning from urllib3 needed to remove warnings
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
@@ -63,6 +75,8 @@ def expand_users_with_candidates(diagnosed_users):
         print(f"Processed user {username} with {len(candidate_usernames)} candidate usernames")
 
     average_candidates_per_user = total_candidates / len(diagnosed_users) if diagnosed_users else 0
+    print("")
+    print("---------------------summary-------------------------")
     print(f"Average number of candidate controls per diagnosed user: {average_candidates_per_user:.2f}")
 
     return expanded_users
