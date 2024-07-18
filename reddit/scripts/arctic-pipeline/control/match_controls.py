@@ -28,24 +28,35 @@ def fetch_user_submissions(username):
     comments_url = f'https://arctic-shift.photon-reddit.com/api/comments/search?author={username}&limit=auto'
     posts, comments = [], []
 
-    try:
-        # Fetch posts
-        posts_response = requests.get(posts_url, verify=False)
-        posts_response.raise_for_status()
-        posts = posts_response.json().get('data', [])
-        
-        # Fetch comments
-        comments_response = requests.get(comments_url, verify=False)
-        comments_response.raise_for_status()
-        comments = comments_response.json().get('data', [])
-        
-        # Adjust comments to use 'selftext' instead of 'body'
-        for comment in comments:
-            comment['selftext'] = comment.pop('body', '')
+    for url in [posts_url, comments_url]:
+        retries = 5
+        backoff_time = 1
 
-    except requests.exceptions.RequestException as e:
-        print(f"Failed to fetch submissions for user {username}. Error: {e}")
-        return []
+        while retries > 0:
+            try:
+                response = requests.get(url, verify=False)
+                response.raise_for_status()
+
+                if 'posts' in url:
+                    posts = response.json().get('data', [])
+                else:
+                    comments = response.json().get('data', [])
+                    for comment in comments:
+                        comment['selftext'] = comment.pop('body', '')
+
+                break
+            except requests.exceptions.RequestException as e:
+                if response.status_code == 429:
+                    print(f"Rate limit exceeded for user {username}. Retrying in {backoff_time} seconds...")
+                    time.sleep(backoff_time)
+                    backoff_time *= 2
+                    retries -= 1
+                else:
+                    print(f"Failed to fetch submissions for user {username}. Error: {e}")
+                    break
+        else:
+            print(f"Exceeded retry limit for user {username}. Skipping.")
+            return []
 
     return posts + comments
 
