@@ -17,8 +17,12 @@ def split_json_file(input_file, output_dir, sections=2):
         end_index = (i + 1) * section_size if i < sections - 1 else total_length
         section_data = data[start_index:end_index]
         
+        # Define the section directory path
+        section_dir = os.path.join(output_dir, f'section_{i+1}', 'diagnosed')
+        os.makedirs(section_dir, exist_ok=True)
+        
         # Define the output file path
-        output_file = os.path.join(output_dir, f'section_{i+1}.json')
+        output_file = os.path.join(section_dir, 'non_mh_subreddits_summary.json')
         
         # Write the section to a new JSON file
         with open(output_file, 'w', encoding='utf-8') as outfile:
@@ -34,8 +38,5 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
     
-    # Create the output directory if it doesn't exist
-    os.makedirs(args.output_dir, exist_ok=True)
-
     # Split the JSON file
     split_json_file(args.input_file, args.output_dir, args.sections)
