@@ -18,7 +18,7 @@ def split_json_file(input_file, output_dir, sections=2):
         section_data = data[start_index:end_index]
         
         # Define the section directory path
-        section_dir = os.path.join(output_dir, f'section_{i+1}', 'diagnosed')
+        section_dir = os.path.join(output_dir, f'section_{i+1}_output', 'diagnosed')
         os.makedirs(section_dir, exist_ok=True)
         
         # Define the output file path
