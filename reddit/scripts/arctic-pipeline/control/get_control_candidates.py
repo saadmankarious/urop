@@ -27,13 +27,27 @@ def load_json(file_path):
 
 def fetch_posts(subreddit, limit):
     url = f'https://arctic-shift.photon-reddit.com/api/posts/search?subreddit={subreddit}&limit={limit}'
-    try:
-        response = requests.get(url, verify=False)
-        response.raise_for_status()
-        return response.json().get('data', [])
-    except requests.exceptions.RequestException as e:
-        print(f"Failed to fetch posts for subreddit {subreddit}. Error: {e}")
-        return []
+    retries = 5
+    delay = 1
+
+    for attempt in range(retries):
+        try:
+            response = requests.get(url, verify=False)
+            if response.status_code == 429:  # Too Many Requests
+                print(f"Rate limit exceeded for subreddit {subreddit}. Retrying in {delay} seconds...")
+                time.sleep(delay)
+                delay *= 2  # Exponential backoff
+                continue
+
+            response.raise_for_status()
+            return response.json().get('data', [])
+        except requests.exceptions.RequestException as e:
+            print(f"Failed to fetch posts for subreddit {subreddit}. Error: {e}")
+            time.sleep(delay)
+            delay *= 2  # Exponential backoff
+
+    print(f"Failed to fetch posts for subreddit {subreddit} after {retries} attempts.")
+    return []
 
 def fetch_posts_for_subreddits(subreddits, limit):
     with ThreadPoolExecutor(max_workers=10) as executor:
