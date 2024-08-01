@@ -54,12 +54,13 @@ def load_json_files_from_folder(folder_path):
             data.extend(json.load(f))
     return data, len(json_files)
 
-def format_to_csv(data, output_file, diagnosed_summary_file):
+def format_to_csv(data, output_file, diagnosed_summary_file, control_threshold=None):
     total_posts = 0
     invalid_posts = 0
     duplicate_posts = 0
     seen_post_ids = set()
     diagnosed_counts = defaultdict(int)
+    users_meeting_threshold = 0
 
     with open(output_file, 'w', newline='', encoding='utf-8') as csvfile:
         fieldnames = ['TID', 'text']
@@ -70,6 +71,9 @@ def format_to_csv(data, output_file, diagnosed_summary_file):
             diagnosed_user = entry['diagnosed_user']
             controls = entry['controls']
             diagnosed_counts[diagnosed_user] += len(controls)
+            if control_threshold is not None and diagnosed_counts[diagnosed_user] < control_threshold:
+                continue
+            users_meeting_threshold += 1
             for control in controls:
                 control_user = control['username']
                 posts = control['posts']
@@ -94,20 +98,22 @@ def format_to_csv(data, output_file, diagnosed_summary_file):
 
         writer.writeheader()
         for diagnosed_user, control_count in diagnosed_counts.items():
-            writer.writerow({'diagnosed_user': diagnosed_user, 'control_count': control_count})
+            if control_count >= control_threshold:
+                writer.writerow({'diagnosed_user': diagnosed_user, 'control_count': control_count})
 
-    return total_posts, invalid_posts, duplicate_posts, len(diagnosed_counts)
+    return total_posts, invalid_posts, duplicate_posts, len(diagnosed_counts), users_meeting_threshold
 
 def main():
     parser = argparse.ArgumentParser(description='Format JSON data to CSV and perform text cleaning.')
     parser.add_argument('input_folder', type=str, help='Path to the input folder containing JSON files')
     parser.add_argument('output_file', type=str, help='Path to the output CSV file')
     parser.add_argument('diagnosed_summary_file', type=str, help='Path to the output CSV file for diagnosed summary')
+    parser.add_argument('--control_threshold', type=int, default=9, help='Minimum number of controls required to include a diagnosed user')
 
     args = parser.parse_args()
 
     data, file_count = load_json_files_from_folder(args.input_folder)
-    total_posts, invalid_posts, duplicate_posts, unique_diagnosed_count = format_to_csv(data, args.output_file, args.diagnosed_summary_file)
+    total_posts, invalid_posts, duplicate_posts, unique_diagnosed_count, users_meeting_threshold = format_to_csv(data, args.output_file, args.diagnosed_summary_file, args.control_threshold)
 
     print(f"------------summary-----------")
     print(f"Number of files read: {file_count}")
@@ -115,6 +121,7 @@ def main():
     print(f"Number of invalid posts ignored: {invalid_posts}")
     print(f"Number of duplicate posts ignored: {duplicate_posts}")
     print(f"Number of unique diagnosed users: {unique_diagnosed_count}")
+    print(f"Number of diagnosed users meeting the control threshold: {users_meeting_threshold}")
 
 if __name__ == '__main__':
     main()
