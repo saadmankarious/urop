@@ -1,6 +1,6 @@
 # Pipeline
 
-This repo includes scripts for data generation and analysis for the research paper. You can use these scripts to regenerate same version of the dataset (user default values for paramters) or to generate your own custom version of the dataset by manipulating parameters in /config/global.json. This pipeline expects subreddit posts and comments obtained via the arctic shift api (https://arctic-shift.photon-reddit.com/download-tool). Support for adittional apis will be provided in the future.
+This repo includes scripts for data generation and analysis for the research paper. You can use these scripts to regenerate same version of the dataset (user default values for paramters) or to generate your own custom version by manipulating parameters in /config/global.json. This pipeline expects subreddit posts and comments obtained via the arctic shift api (https://arctic-shift.photon-reddit.com/download-tool). Support for adittional apis will be provided in the future.
 
 ## Table of Contents
 
