@@ -1,6 +1,8 @@
 # Pipeline
 
-This repo includes scripts for data generation and analysis for the research paper. You can use these scripts to regenerate same version of the dataset (user default values for paramters) or to generate your own custom version by manipulating parameters in /config/global.json. This pipeline expects subreddit posts and comments obtained via the arctic shift api (https://arctic-shift.photon-reddit.com/download-tool). Support for adittional apis will be provided in the future.
+This repo includes Shell and Python scripts for data generation and analysis for the research paper. You can use these scripts to regenerate same version of the dataset (user default values for paramters) or to generate your own custom version by manipulating parameters in /config/global.json. This pipeline expects subreddit posts and comments obtained via the arctic shift api (https://arctic-shift.photon-reddit.com/download-tool). Support for adittional apis will be provided in the future. 
+
+Main scripts are found under project-root-dir/reddit/scripts/arctic-pipeline. All code is documented for ease of use. Code used for ML analysis and experiemnts is under project-root-dir/analysis.
 
 ## Table of Contents
 
@@ -27,7 +29,7 @@ project-root-dir/reddit/scripts/arctic-pipeline is the main package for data cle
 cd reddit/scripts/arctic-pipeline/diagnosed
 bash generate_diagnosed.sh ~/Downloads/bipolar_june_2024.jsonl bipolar 50
 ```
-<path_to_raw_data_from_arctic_api>  <condition_name> <minimum_posts_for_user>
+bash generate_diagnosed.sh <path_to_raw_data_from_arctic_api>  <condition_name> <minimum_posts_for_user>:
 Generates a diagnosed dataset for condition condition_name at location project-root-dir/reddit/data/condition_name_output/diagnosed
 
 ```bash
@@ -35,7 +37,7 @@ Generates a diagnosed dataset for condition condition_name at location project-r
 cd reddit/scripts/arctic-pipeline/diagnosed
 bash generate_control.sh ../../../data/bipolar_output 9
 ```
-<condition_generated_folder> <threshold>
+bash generate_control.sh <condition_generated_folder> <threshold>:
 Generates a control dataset for the obtained diagnosed dataset at location project-root-dir/reddit/data/condition_name_output/control. Has to be ran after diagnosed generation is complete.
 
 
